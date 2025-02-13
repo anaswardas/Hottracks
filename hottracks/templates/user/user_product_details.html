@@ -1,0 +1,234 @@
+{% extends 'user/user_base.html' %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- Breadcrumbs Section -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li style="margin-right: 10px;"><a href="{% url 'user_home' %}">Home</a></li>
+        <li style="margin-right: 10px;"><a href="{% url 'user_product' %}">Products</a></li>
+        <li class="active" aria-current="page">{{ product.name }}</li>
+    </ol>
+</nav>
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} d-flex align-items-center" role="alert">
+        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="{{ message.tags|title }}:">
+            <use xlink:href="#exclamation-triangle-fill"/>
+        </svg>
+        <div>
+            {{ message }}
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Product Image and Details -->
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            <div class="product-sticky-style">
+                <div class="product-details-img product-horizontal-style mb-3">
+                    <div class="zoompro-wrap w-100">
+                        <img id="zoompro" class="zoompro img-fluid" 
+                             src="{{ product.image1.url }}" 
+                             alt="product" 
+                             data-zoom-image="{{ product.image1.url }}" />
+                    </div>
+                    <div class="product-thumb product-horizontal-thumb w-100 pt-2 mt-1">
+                        <div id="gallery" class="product-thumb-style1 overflow-hidden">
+                            <a data-image="{{ product.image1.url }}" data-zoom-image="{{ product.image1.url }}">
+                                <img class="blur-up lazyload" src="{{ product.image1.url }}" style="width: 100px; height: auto;" alt="product" />
+                            </a>
+                            <a data-image="{{ product.image2.url }}" data-zoom-image="{{ product.image2.url }}">
+                                <img class="blur-up lazyload" src="{{ product.image2.url }}" style="width: 100px; height: auto;" alt="product" />
+                            </a>
+                            <a data-image="{{ product.image3.url }}" data-zoom-image="{{ product.image3.url }}">
+                                <img class="blur-up lazyload" src="{{ product.image3.url }}" style="width: 100px; height: auto;" alt="product" />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-lg-6 col-md-6 col-sm-12">
+            <h2>{{ product.name }}</h2>
+        
+            <!-- Display Discounted Price If Offer is Applied -->
+            {% if product.is_offer_applied %}
+                <p class="lead">
+                    <s class="text-muted">₹{{ product.price }}</s> <!-- Original Price -->
+                    <span class="text-success">₹{{ product.discounted_price }}</span> <!-- Discounted Price -->
+                    <span class="badge bg-warning text-dark">(Discount: {{ product.discount_percentage }}%)</span>
+                </p>
+            {% else %}
+                <p class="lead">₹{{ product.price }}</p>
+            {% endif %}
+        
+            <!-- Ratings -->
+            <div class="mb-3">
+                <strong>Rating:</strong>
+                <span class="text-warning">
+                    <i class="fa fa-star filled"></i>
+                    <i class="fa fa-star filled"></i>
+                    <i class="fa fa-star filled"></i>
+                    <i class="fa fa-star filled"></i>
+                    <i class="fa fa-star"></i>
+                </span>
+                <span>4 / 5</span>
+            </div>
+        
+            <!-- Category -->
+            <div class="mb-3">
+                <strong>Category:</strong> <span class="text-success">{{ product.category.name }}</span>
+            </div>
+        
+            <!-- Stock -->
+            <div class="mb-3">
+                <strong>Stock:</strong> <span class="text-success">{{ product.stock_count }} items available</span>
+            </div>
+        
+           
+        
+            <!-- Reviews -->
+            <div class="mb-3">
+                <strong>Reviews:</strong>
+                <ul>
+                    <li><strong>John Doe:</strong> Excellent product! - <span class="text-warning">⭐⭐⭐⭐</span></li>
+                    <li><strong>Jane Smith:</strong> Worth the price. - <span class="text-warning">⭐⭐⭐⭐⭐</span></li>
+                    <li><strong>Mike Johnson:</strong> Not bad, but could be better. - <span class="text-warning">⭐⭐⭐</span></li>
+                </ul>
+            </div>
+        
+            <!-- Description -->
+            <div class="mb-3">
+                <strong>Description:</strong>
+                <p>{{ product.description }}</p>
+                <p>Specifications:</p>
+                <ul>
+                    <li>High-quality material</li>
+                    <li>Durable and long-lasting</li>
+                    <li>Available in multiple colors and sizes</li>
+                    <li>Easy to use and maintain</li>
+                </ul>
+            </div>
+        
+            <!-- Add to Cart Button -->
+            <button class="btn btn-primary" onclick="addToCart({{ product.id }})">Add To Cart</button>
+        
+            <!-- Wishlist Button -->
+            <button class="btn btn-outline-danger" id="wishlist-button" data-product-id="{{ product.id }}">
+                {% if is_in_wishlist %}
+                    Remove from Wishlist
+                {% else %}
+                    Add to Wishlist
+                {% endif %}
+            </button>
+        
+            <!-- CSRF Token for AJAX -->
+            <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+        </div>
+        
+    </div>       
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    // ✅ Add to Cart AJAX + SweetAlert
+    function addToCart(productId) {
+        const csrfToken = "{{ csrf_token }}";
+
+        fetch(`/cart/add_to_cart/${productId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ quantity: 1 })
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.fire({
+                icon: data.success ? 'success' : 'error',
+                title: data.success ? 'Product Added!' : 'Oops...',
+                text: data.message || 'Something went wrong!',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong. Please try again later.',
+                showConfirmButton: true
+            });
+        });
+    }
+
+    // ✅ Wishlist Button AJAX + SweetAlert
+    $(document).ready(function() {
+        $("#wishlist-button").click(function() {
+            var button = $(this);
+            var productId = button.data("product-id");
+
+            $.ajax({
+                url: `/cart/wishlist/${productId}/`,
+                type: "POST",
+                data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
+                success: function(response) {
+                    if (response.success) {
+                        let action = response.message.includes("removed") ? "removed from" : "added to";
+
+                        // ✅ Toggle button text
+                        button.text(action === "removed from" ? "Add to Wishlist" : "Remove from Wishlist");
+
+                        // ✅ Show SweetAlert
+                        Swal.fire({
+                            title: "Success!",
+                            text: response.message,
+                            icon: "success",
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error!",
+                            text: response.message,
+                            icon: "error"
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: "Oops!",
+                        text: "Something went wrong!",
+                        icon: "error"
+                    });
+                }
+            });
+        });
+    });
+</script>
+
+
+
+<style>
+    .thumb-img {
+        width: 120px; /* Larger thumbnail size */
+        height: auto;
+        margin: 5px;
+        cursor: pointer;
+    }
+
+    .zoompro-wrap img {
+        display: block;
+        max-width: 100%;
+    }   
+</style>
+
+{% endblock %}

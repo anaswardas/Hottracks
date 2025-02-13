@@ -1,0 +1,95 @@
+{% extends "user/user_base.html" %}
+
+{% block title %} Razorpay Checkout {% endblock %}
+
+{% block content %}
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <div id="payment-form" class="text-center">
+        <h2>Complete Your Payment</h2>
+        <p>Total Amount: ₹{{ amount|floatformat:2 }}</p>
+        <button id="rzp-button" class="btn btn-primary">Pay Now</button>
+    </div>
+
+    <script>
+    var options = {
+        "key": "{{ razorpay_key }}",
+        "amount": "{{ amount }}",  // Already in paise from the view
+        "currency": "INR",
+        "name": "{{ name }}",
+        "description": "Payment for Order #{{ order_id }}",
+        "order_id": "{{ razorpay_order_id }}",
+        "handler": function (response) {
+            // Show loading state
+            Swal.fire({
+                title: 'Processing Payment',
+                text: 'Please wait while we verify your payment...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Create form data
+            var formData = new FormData();
+            formData.append('order_id', '{{ razorpay_order_id }}');
+            formData.append('razorpay_payment_id', response.razorpay_payment_id);
+            formData.append('razorpay_signature', response.razorpay_signature);
+
+            // Send verification request
+            fetch("{% url 'verify_payment' %}", {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Payment Successful!',
+                        text: 'Your payment has been successfully processed.',
+                        confirmButtonText: 'Continue',
+                    }).then(() => {
+                        window.location.href = data.redirect_url;
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Payment Failed',
+                        text: data.message || 'An error occurred during payment verification.',
+                        confirmButtonText: 'Try Again',
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while processing your payment.',
+                    confirmButtonText: 'Close',
+                });
+            });
+        },
+        "prefill": {
+            "name": "{{ name }}",
+            "email": "{{ email }}",
+            "contact": "{{ phone }}"
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+
+    document.getElementById('rzp-button').onclick = function(e) {
+        var rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault();
+    }
+
+    window.onload = function() {
+        document.getElementById('rzp-button').click();
+    }
+    </script>
+{% endblock %}

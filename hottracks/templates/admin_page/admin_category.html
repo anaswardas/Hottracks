@@ -1,0 +1,88 @@
+{% extends 'admin_page/admin_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Category Management</h2>
+
+    <!-- Link to Add Category Page -->
+    <div class="mb-3">
+        <a href="{% url 'add_category' %}" class="btn btn-primary">Add Category</a>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Sl No</th>
+                    <th>Image</th> <!-- New column for the image -->
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if messages %}
+                <div class="mt-3" id="message-container">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}" role="alert">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% for category in categories %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    
+                    <!-- Category Image -->
+                    <td>
+                        {% if category.category_image %}
+                            <img src="{{ category.category_image.url }}" alt="{{ category.name }}" style="max-width: 100px; height: auto;">
+                        {% else %}
+                            <span>No Image</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.description }}</td>
+                    <td>
+                        {% if category.is_active %}
+                            <span class="badge badge-success">Listed</span>
+                        {% else %}
+                            <span class="badge badge-danger">Unlisted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Edit Button -->
+                        <a href="{% url 'edit_category' category.id %}" class="btn btn-warning btn-sm">Edit</a>
+
+                        <!-- List/Unlist Button -->
+                         
+                        <form method="POST" action="{% url 'category_status' category.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            {% if category.is_active %}
+                                <button type="submit" class="btn btn-danger btn-sm">Unlist</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-success btn-sm">List</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    // Timer to dismiss the alert messages after 5 seconds
+    setTimeout(function() {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 5000); // 5000 milliseconds = 5 seconds
+</script>
+
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "admin_page/admin_base.html" %}
+{% load static %}
+{% block title %}Edit Coupon{% endblock %}
+
+{% block extra_styles %}
+<!-- Custom style CSS -->
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Edit Coupon</h4>
+                </div>
+                <!-- Alert Messages -->
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+                        <use xlink:href="#exclamation-triangle-fill"/>
+                    </svg>
+                    <div>
+                        {{ message }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <div class="card-body">
+                    <div id="addProductsFormContainer">
+                        <form id="editcouponForm" action="{% url 'edit_coupon' coupon.id %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="title">Title</label>
+                                <input type="text" class="form-control" id="title" value="{{ coupon.title }}" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="coupon_code">Coupon Code</label>
+                                <input type="text" class="form-control" id="coupon_code" value="{{ coupon.code }}" name="coupon_code" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="discount_percentage">Discount Percentage</label>
+                                <input type="number" step="0.01" class="form-control" id="discount_percentage" value="{{ coupon.discount_percentage }}" name="discount_percentage" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="start_date">Start Date</label>
+                                <input type="date" class="form-control" id="start_date"  value="{{ coupon.start_date|date:'Y-m-d' }}" name="start_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="end_date">End Date</label>
+                                <input type="date" class="form-control" id="end_date" value="{{ coupon.end_date|date:'Y-m-d' }}" name="end_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" value="{{ coupon.quantity }}" name="quantity" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="min_amount">Minimum Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="min_amount" value="{{ coupon.min_amount }}" name="min_amount" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="max_amount">Maximum Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="max_amount" value="{{ coupon.max_amount }}" name="max_amount">
+                            </div>
+                            <div class="form-group">
+                                <label for="active">Active</label>
+                                <input type="checkbox" class="form-control" id="active" {% if coupon.active %}checked{% endif %} name="active">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</section>
+
+     
+    
+
+{% endblock %}
+
+{% block scripts %}
+
+
+
+                
+<script src="{% static 'adminassets/bundles/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'adminassets/bundles/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'adminassets/js/page/datatables.js' %}"></script>
+<script src="{% static 'adminassets/js/scripts.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  
+{% endblock %}
+
+
+
+
+<form id="addProductsForm" action="{% url 'edit_product' product.id %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="product_name">Product Name</label>
+        <input type="text" class="form-control" id="name" value="{{product.name}}" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input type="number" class="form-control" id="price" value="{{product.price}}" name="price" required>
+    </div>  
+    <div class="form-group">
+        <label for="thumbnail">Thumbnail</label>
+        <input type="file" class="form-control" id="thumbnail" name="thumbnail" >
+        {% if product.thumbnail %}
+        <img src="{{ product.thumbnail.url }}" alt="Current Thumbnail" style="max-height: 200px; margin-top: 10px;">
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control" id="description"  name="description" rows="3" required>{{product.description}}</textarea>
+    </div>
+    <div class="form-group">
+        <label for="details">Details</label>
+        <textarea class="form-control" id="details"  name="details" rows="3" required>{{product.details}}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="quantity">Quantity</label>
+      <input type="number" class="form-control" id="quantity" value="{{product.quantity}}" name="quantity" required>
+  </div>  
+ 
+    <div class="form-group">
+        <label for="category">Category</label>
+        <select class="form-control" id="category" name="category" required>
+            {% for category in Categories %}
+            <option value="{{ category.id }}" {% if category.id == product.category.id %}selected{% endif %}>
+                {{ category.cat_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <div class="form-group">
+        
+        <label>Products Imag</label>
+        <input type="file" id="variantImages" name="variant_images" class="file-upload-default" multiple>
+       
+        <div class="input-group col-xs-12">
+            <input type="text" class="form-control file-upload-info" disabled placeholder="Upload Images">
+            <span class="input-group-append">
+                <button class="file-upload-browse btn btn-primary" type="button" onclick="document.getElementById('variantImages').click();">Upload</button>
+                
+            </span>
+        </div>
+        {% for image in images %}
+        <img src="{{ image.image.url }}" alt="Variant Image" class="img-thumbnail" style="width: 100px; height: 100px; margin-right: 10px;">
+        {% endfor %}
+        <div class="uploaded-images mt-3" id="uploadedImages"></div>
+        
+    </div>
+
+    <div id="image-preview-container" class="preview-container"></div>
+    <div class="form-group">
+        <input type="hidden" id="croppedImages" name="croppedImages" value="">
+       <a href="{% url 'adminproducts' %}"> <button type="button" class="btn btn-secondary" id="cancelAddProduct">Cancel</button></a>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</form>

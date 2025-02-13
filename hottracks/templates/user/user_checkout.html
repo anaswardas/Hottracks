@@ -1,0 +1,357 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Checkout{% endblock %}
+{% load static %}
+
+{% block extra_styles %}
+<style>
+    .coupon {
+        border-radius: 12px;
+        box-shadow: 5px 8px 10px #d6d5d533;
+        border: 1px solid #ccc;
+    }
+    .code:hover {
+        background: green;
+        color: #fff;
+        cursor: pointer;
+    }
+    .btn-link {
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .btn-link:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+    .payment-method-card {
+        border: 1px solid #ddd;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    .payment-method-card.selected {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="page-content">
+    <div class="container">
+        <div class="row">
+            <!-- Billing Address Section -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card card--grey mt-2">
+                    <div class="card-body">
+                        <h2 class="fs-6">BILLING ADDRESS</h2>
+                        <div class="accordion add-address mt-3" id="address1">
+                            <button class="btn btn--small rounded" onclick="window.location.href='{% url 'view_address' %}'">
+                                Add Address
+                            </button>
+                        </div>
+                        {% if messages %}
+                        <div class="mt-3" id="message-container">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <form class="checkout-form" id="checkout-form" method="post" action="{% url 'checkout_view' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="place_order">
+                            {% for address in addresses %}
+                            <div class="card card--grey mt-2">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title billing-address">
+                                            <input type="radio" name="selected_address" value="{{ address.id }}" id="address{{ address.id }}" required>
+                                            <label for="address{{ address.id }}">Billing Address</label>
+                                        </h5>
+                                        <p class="card-text">
+                                            <strong>{{ address.name }}</strong><br>
+                                            {{ address.house_no }},<br>
+                                            {{ address.city }}, {{ address.state }},<br>
+                                            {{ address.country }}<br>
+                                            Pincode: {{ address.pincode }}<br>
+                                            Phone: {{ address.phone }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Payment Method Section -->
+            <div class="col-md-6 col-lg-4 mt-2 mt-md-0">
+                <div class="card card--grey mt-2">
+                    <div class="card-body">
+                        <h2 class="fs-6">PAYMENT METHOD</h2>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="payment-method-card">
+                                    <div class="customRadio clearfix">
+                                        <input id="formcheckoutRadio4" value="COD" name="payment_method" type="radio" class="radio" checked="checked">
+                                        <label for="formcheckoutRadio4">Cash on Delivery (COD)</label>
+                                    </div>
+                                </div>
+                                <div class="payment-method-card">
+                                    <div class="customRadio clearfix">
+                                        <input id="formcheckoutRadio5" value="Razorpay" name="payment_method" type="radio" class="radio">
+                                        <label for="formcheckoutRadio5">Online Payment (Razorpay)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Order Summary Section -->
+            <div class="col-md-12 col-lg-4 mt-2 mt-lg-0">
+                <h2 class="title fs-6">ORDER SUMMARY</h2>
+            
+                <!-- Coupon Section -->
+                {% if coupons %}
+                <div class="card coupon mt-3 p-3">
+                    <h5>Available Coupons</h5>
+                    <ul id="coupon_list">
+                        {% for coupon in coupons %}
+                            <li>
+                                <strong>{{ coupon.code }}</strong> - {{ coupon.discount_percentage }}% off
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+                    <div class="input-group mt-2" id="coupon_input_group">
+                        <input type="text" class="form-control" id="coupon_code" placeholder="Enter Coupon Code" required>
+                        <button type="button" class="btn btn-primary" id="apply_coupon_btn">Apply</button>
+                    </div>
+                </div>
+                {% endif %}
+            
+                <!-- Show applied coupon message only if a coupon is applied -->
+                {% if applied_coupon %}
+                <p class="text-success mt-2">
+                    Coupon "<strong>{{ applied_coupon.code }}</strong>" applied successfully! 
+                    ({{ applied_coupon.discount_percentage }}% off)
+                </p>
+                {% endif %}
+            
+                <!-- Order Table -->
+               <!-- Order Table -->
+<div class="table-responsive order-table style1 mt-3">
+    <table class="table table-bordered align-middle table-hover text-center mb-1">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th class="text-start">Name</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td><img src="{{ item.product.image1.url }}" alt="{{ item.product.name }}" width="80" /></td>
+                <td class="text-start">{{ item.product.name }}</td>
+                
+                <td>
+                    {% if item.product.is_offer_applied %}
+                        <del class="text-danger">{{ item.product.original_price | floatformat:2 }}₹</del>
+                        <span class="money text-success">{{ item.discounted_price | floatformat:2 }}₹</span>
+                        <span class="text-warning">(-{{ item.product.discount_percentage }}% OFF)</span>
+                    {% else %}
+                        <span class="money">{{ item.product.price | floatformat:2 }}₹</span>
+                    {% endif %}
+                </td>
+
+                <td>{{ item.quantity }}</td>
+
+                <td>
+                    {% if item.product.is_offer_applied %}
+                        <del class="text-danger">{{ item.original_subtotal | floatformat:2 }}₹</del>
+                        <span class="money text-success">{{ item.subtotal | floatformat:2 }}₹</span>
+                    {% else %}
+                        <span class="money">{{ item.subtotal | floatformat:2 }}₹</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" class="text-end fw-bolder">Subtotal</td>
+                <td id="checkout-subtotal">{{ cart_subtotal | floatformat:2 }}₹</td>
+            </tr>
+            
+            <tr id="discount_row" {% if not applied_coupon and not applied_offer %}style="display: none;"{% endif %}>
+                <td colspan="4" class="text-end fw-bolder text-success">Discount</td>
+                <td class="text-success">-<span id="discount_amount">
+                    {{ discount_amount | floatformat:2 }}
+                </span>₹</td>
+            </tr>
+
+            <tr>
+                <td colspan="4" class="text-end fw-bolder">Tax (0.1%)</td>
+                <td id="checkout-tax">{{ cart_tax | floatformat:2 }}₹</td>
+            </tr>
+            
+            <tr>
+                <td colspan="4" class="text-end fw-bolder">Total</td>
+                <td><span id="checkout-total">{{ cart_total | floatformat:2 }}</span>₹</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+            
+                <!-- Place Order Button -->
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-primary">Place Order</button>
+                </div>
+            </div>
+</div>
+</div>
+<!-- Include SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const applyCouponBtn = document.getElementById("apply_coupon_btn");
+        const couponInput = document.getElementById("coupon_code");
+        const couponInputGroup = document.getElementById("coupon_input_group");
+        const discountRow = document.getElementById("discount_row");
+        const discountAmountEl = document.getElementById("discount_amount");
+        const checkoutTotalEl = document.getElementById("checkout-total");
+
+        function updateCouponUI(data) {
+            discountRow.style.display = "table-row";
+
+            const discountAmount = parseFloat(data.discount_amount) || 0;  // Ensure numeric value
+            const finalTotal = parseFloat(data.final_total) || 0;  // Ensure numeric value
+
+            discountAmountEl.textContent = discountAmount.toFixed(2);
+            checkoutTotalEl.textContent = finalTotal.toFixed(2);
+
+            couponInputGroup.style.display = "none";
+
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "alert alert-success mt-2";
+            messageDiv.innerHTML = `
+                Coupon "${data.coupon_code}" applied successfully! (${data.discount}% off)
+                <button type="button" class="btn btn-danger btn-sm float-end" onclick="removeCoupon()">
+                    Remove Coupon
+                </button>
+            `;
+
+            couponInputGroup.parentElement.insertBefore(messageDiv, couponInputGroup.nextSibling);
+        }
+
+        window.removeCoupon = function () {
+            const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+            fetch("/payment/remove-coupon/", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken,
+                    "Content-Type": "application/json",
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        discountRow.style.display = "none";
+                        checkoutTotalEl.textContent = data.final_total.toFixed(2);
+
+                        const messageDiv = document.querySelector(".alert-success");
+                        if (messageDiv) messageDiv.remove();
+                        couponInputGroup.style.display = "block";
+                        couponInput.value = "";
+
+                        Swal.fire({
+                            title: "Success",
+                            text: data.message,
+                            icon: "success",
+                            timer: 5000,
+                            showConfirmButton: false,
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error("Error removing coupon:", error);
+                    Swal.fire("Error", "Failed to remove coupon", "error", {
+                        timer: 5000,
+                        showConfirmButton: false,
+                    });
+                });
+        };
+
+        if (applyCouponBtn) {
+            applyCouponBtn.addEventListener("click", function () {
+                const couponCode = couponInput.value.trim();
+                if (!couponCode) {
+                    Swal.fire("Error", "Please enter a coupon code", "error", {
+                        timer: 5000,
+                        showConfirmButton: false,
+                    });
+                    return;
+                }
+
+                const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+
+                fetch("/payment/apply-coupon/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": csrfToken,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ coupon_code: couponCode }),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error(`Server error: ${response.status} ${response.statusText}`);
+                            throw new Error(`Server error: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === "success") {
+                            updateCouponUI(data);
+                            Swal.fire({
+                                title: "Success",
+                                text: data.message,
+                                icon: "success",
+                                timer: 5000,
+                                showConfirmButton: false,
+                            });
+                        } else {
+                            Swal.fire("Error", data.message, "error", {
+                                timer: 5000,
+                                showConfirmButton: false,
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error applying coupon:", error);
+                        Swal.fire("Error", "Failed to apply coupon", "error", {
+                            timer: 5000,
+                            showConfirmButton: false,
+                        });
+                    });
+            });
+        }
+    });
+</script>
+
+
+
+
+{% endblock %}

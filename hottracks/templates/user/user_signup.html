@@ -1,0 +1,149 @@
+{% extends 'user/user_base.html' %}
+{% block title %}Signup - Hot Tracks{% endblock %}
+
+{% block content %}
+<!--Body Container-->
+<div id="page-content">
+    <!--Collection Banner-->
+    <div class="collection-header">
+        <div class="collection-hero">
+            <div class="collection-hero__image"></div>
+            <div class="collection-hero__title-wrapper container">
+                <h1 class="collection-hero__title">Create An Account</h1>
+                <div class="breadcrumbs text-uppercase mt-1 mt-lg-2">
+                    <a href="{% url 'user_home' %}" title="Back to the home page">Home</a><span>|</span>
+                    <span class="fw-bold">Create An Account</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Collection Banner-->
+
+    <!--Container-->
+    <div class="container">
+        <!--Main Content-->
+        <div class="container">
+            <div id="error_messages" class="text-danger">
+                {% if messages %}
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            <!-- The rest of your form code -->
+            
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-12 box mt-2 mt-lg-5">
+                    <div id="error_messages" class="text-danger"></div>
+                
+                <h3 class="h4 text-uppercase mb-3">Personal Information</h3>
+                <form method="post" action="{% url 'user_signup' %}" accept-charset="UTF-8" class="customer-form" id="signup_form">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                            <div class="form-group">
+                                <label for="username" class="d-none">Username <span class="required">*</span></label>
+                                <input id="username" type="text" name="username" placeholder="Username" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12">
+                            <div class="form-group">
+                                <label for="email" class="d-none">Email Address <span class="required">*</span></label>
+                                <input id="email" type="email" name="email" placeholder="Email" required />
+                            </div>
+                        </div>
+                    </div>
+                    <h3 class="h4 text-uppercase mb-3">Login Information</h3>
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                            <div class="form-group">
+                                <label for="password" class="d-none">Password <span class="required">*</span></label>
+                                <input id="password" type="password" name="password" placeholder="Password" required />
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                            <div class="form-group">
+                                <label for="confirm_password" class="d-none">Confirm Password <span class="required">*</span></label>
+                                <input id="confirm_password" type="password" name="confirm_password" placeholder="Confirm Password" required />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="text-left col-12 col-sm-12 col-md-6 col-lg-6">
+                            <input type="submit" class="btn rounded mb-3" value="Submit">
+                        </div>
+                        <div class="text-right col-12 col-sm-12 col-md-6 col-lg-6">
+                            <a href="{% url 'user_login' %}"><i class="align-middle icon an an-an-double-left me-2"></i>Back To Login</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!--End Main Content-->
+    </div>
+</div>
+    <!--End Container-->
+</div>
+<!--End Body Container-->
+
+<script>
+    document.getElementById('signup_form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        var username = document.getElementById('username').value.trim();
+        var email = document.getElementById('email').value.trim();
+        var password = document.getElementById('password').value;
+        var confirm_password = document.getElementById('confirm_password').value;
+        var errorMessages = [];
+        
+        if (!username.match(/^[A-Za-z]+$/)) {
+            errorMessages.push("Username must only contain letters.");
+        }
+        
+        if (password.length < 8) {
+            errorMessages.push("Password must be at least 8 characters long.");
+        }
+        
+        if (!password.match(/[A-Z]/)) {
+            errorMessages.push("Password must contain at least one uppercase letter.");
+        }
+        
+        if (!password.match(/[a-z]/)) {
+            errorMessages.push("Password must contain at least one lowercase letter.");
+        }
+        
+        if (!password.match(/[0-9]/)) {
+            errorMessages.push("Password must contain at least one number.");
+        }
+        
+        if (!password.match(/[!@#$%^&*(),.?":{}|<>]/)) {
+            errorMessages.push("Password must contain at least one special character.");
+        }
+        
+        if (password.indexOf(' ') !== -1) {
+            errorMessages.push("Password must not contain spaces.");
+        }
+        
+        if (password !== confirm_password) {
+            errorMessages.push("Passwords do not match.");
+        }
+        
+        var errorContainer = document.getElementById('error_messages');
+        errorContainer.innerHTML = "";
+        
+        if (errorMessages.length > 0) {
+            errorMessages.forEach(function(message) {
+                var p = document.createElement('p');
+                p.textContent = message;
+                errorContainer.appendChild(p);
+            });
+        } else {
+            document.getElementById('signup_form').submit();
+        }
+    });
+    
+   
+</script>
+{% endblock %}

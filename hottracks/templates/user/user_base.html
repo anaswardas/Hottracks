@@ -1,0 +1,263 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+    
+<!-- Mirrored from 3.37.186.116/index.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 21 May 2024 15:32:17 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=UTF-8" /><!-- /Added by HTTrack -->
+<head>
+    <!-- Required Meta Tags -->
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="description">
+
+    <!-- Title Of Site -->
+    <title>Hot Tracks</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{% static 'assets/images/logo.png' %}" />
+
+    <!-- Plugins CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/plugins.css' %}" />
+    <!-- Main Style CSS -->
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/css/responsive.css' %}" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Muli:300,400,700" rel="stylesheet">
+
+    <!-- SweetAlert CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.7/dist/sweetalert2.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery Zoom Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
+    <!-- SweetAlert JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.7/dist/sweetalert2.all.min.js"></script>
+
+    <!-- Optional: Add some styles for alert messages -->
+    <style>
+        .alert {
+            transition: opacity 1s ease-out;
+        }
+    </style>
+</head>
+
+
+    <body class="template-index index-demo1">
+        <!-- Page Loader -->
+        <div id="pre-loader"><img src="{% static 'assets/images/loader.gif' %}" alt="Loading..." /></div>
+        <!-- End Page Loader -->
+
+        <!--Page Wrapper-->
+        <div class="page-wrapper">
+            <!--Header-->
+            <div id="header" class="header">
+                <div class="header-main">
+                    <header class="header-wrap container d-flex align-items-center">
+                        <div class="row g-0 align-items-center w-100">
+                            <!--Social Icons-->
+                            <div class="col-4 col-sm-4 col-md-4 col-lg-5 d-none d-lg-block">
+                                <ul class="social-icons list-inline">
+                                    <li class="list-inline-item"><a href="#"><i class="an an-facebook" aria-hidden="true"></i><span class="tooltip-label">Facebook</span></a></li>
+                                    <li class="list-inline-item"><a href="#"><i class="an an-twitter" aria-hidden="true"></i><span class="tooltip-label">Twitter</span></a></li>
+                                    <li class="list-inline-item"><a href="#"><i class="an an-pinterest-p" aria-hidden="true"></i><span class="tooltip-label">Pinterest</span></a></li>
+                                    <li class="list-inline-item"><a href="#"><i class="an an-instagram" aria-hidden="true"></i><span class="tooltip-label">Instagram</span></a></li>
+                                    <li class="list-inline-item"><a href="#"><i class="an an-whatsapp" aria-hidden="true"></i><span class="tooltip-label">Whatsapp</span></a></li>
+                                </ul>
+                            </div>
+                            <!--End Social Icons-->
+                            <!--Logo / Menu Toggle-->
+                            <div class="col-6 col-sm-6 col-md-6 col-lg-2 d-flex">
+                                <!--Mobile Toggle-->
+                                <button type="button" class="btn--link site-header__menu js-mobile-nav-toggle mobile-nav--open me-3 d-lg-none"><i class="icon an an-times-l"></i><i class="icon an an-bars-l"></i></button>
+                                <!--End Mobile Toggle-->
+                                <!--Logo-->
+                                <div class="logo mx-lg-auto"><a href="{% url 'user_home' %}"><img class="logo-img" src="{% static 'assets/images/logo.png' %}" alt="Optimal Multipurpose eCommerce Bootstrap 5 Html Template" title="Optimal Multipurpose eCommerce Bootstrap 5 Html Template" /><span class="logo-txt d-none"></span></a></div>
+                                <!--End Logo-->
+                            </div>
+                            <!--End Logo / Menu Toggle-->
+                            <!--Right Action-->
+                            <div class="col-6 col-sm-6 col-md-6 col-lg-5 icons-col text-right d-flex justify-content-end">
+                                <!--Search-->
+                                <div class="site-search iconset">
+                                    <i class="icon an an-search-l"></i><span class="tooltip-label">Search</span>
+                                </div>
+                                <!--End Search-->
+                                <!--Wishlist-->
+                                <div class="wishlist-link iconset">
+                                    <a href="{% url 'wishlist' %}"><i class="icon an an-heart-l"></i><span class="tooltip-label">Wishlist</span></a>
+                                </div>
+                                <!--End Wishlist-->
+                                <!--Minicart Drawer-->
+                                <div class="header-cart iconset">
+                                    <a href="{% url 'user_cart' %}" class="site-header__cart btn-minicart">
+                                        <i class="icon an an-sq-bag"></i>
+                                       
+                                      
+                                        <span class="tooltip-label">Cart</span>
+                                    </a>
+                                </div>
+                                {% if user.is_authenticated %}
+                                    <div class="header-user iconset">
+                                        <a href="{% url 'view_address' %}" class="site-header__user btn-minicart">
+                                            <i class="icon an an-user"></i><span class="tooltip-label">User</span>
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            
+                                <!--User Greeting-->
+                                {% if user.is_authenticated %}
+                                    {% if not user.is_staff and not user.is_superuser %}
+                                        <!-- Username -->
+                                        <div style="margin-right: 10px;">Hi, {{ user.username }}</div>
+                                        <!-- Logout -->
+                                        <a href="{% url 'user_logout' %}" style="margin-left: 10px;">Logout</a>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="user-link iconset">
+                                        <i class="icon an an-user-expand"></i>
+                                        <span class="tooltip-label">Account</span>
+                                    </div>
+                                    <div id="userLinks">
+                                        <ul class="user-links" style="display: block; visibility: visible;">
+                                            <li><a href="{% url 'user_login' %}">Login</a></li>
+                                            <li><a href="{% url 'user_signup' %}">Sign Up</a></li>
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                <!--End User Greeting-->
+                            </div>
+                            
+                            
+                            
+                            
+                        </div>
+                    </header>
+                    <!--Main Navigation Desktop-->
+                    <div class="menu-outer">
+                        <nav class="container">
+                            <div class="row">
+                                <div class="col-1 col-sm-12 col-md-12 col-lg-12 align-self-center d-menu-col">
+                                    <!-- Desktop Menu -->
+                                    <nav class="grid__item" id="AccessibleNav">
+                                        <ul id="siteNav" class="site-nav medium center hidearrow right-nav">
+                                            <li class="lvl1 parent megamenu"><a href="{% url 'user_home' %}">Home <i class="an an-angle-down-l"></i></a></li>
+                                            <li class="lvl1 parent megamenu"><a href="{% url 'user_product' %}">Product <i class="an an-angle-down-l"></i></a></li>
+            
+                                            <!-- Cart and Wishlist Buttons -->
+                                            <li class="lvl1"><a href="{% url 'user_cart' %}"><i class="icon an an-sq-bag"></i> Cart <span class="site-cart-count counter"></span></a></li>
+                                            <li class="lvl1"><a href="{% url 'wishlist' %}"><i class="icon an an-heart"></i> Wishlist <span class="wishlist-count counter"></span></a></li>
+                                        </ul>
+                                    </nav>
+                                    <!-- End Desktop Menu -->
+                                </div>
+                            </div>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            
+            
+            </nav>
+        </div>
+        <!--End Main Navigation Desktop-->
+    </div>
+</div>
+
+            <!--End Mobile Menu -->
+
+            {% block content %}
+            {% endblock %}
+            
+
+            <!--Footer-->
+            <div class="footer footer-1">
+                <div class="footer-top clearfix">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-12 text-center about-col mb-4">
+                                <img src="{% static 'assets\images\logo.png' %}" alt="Optimal" class="mb-3"/>
+                                <p>Bangalore, 2568 steet, Madivala</p>
+                                <p class="mb-0 mb-md-3">Phone: <a href="tel:+011234567890">(+91) 999 888 0000</a> <span class="mx-1">|</span> Email: <a href="mailto:info@example.com">hottracks.com</a></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-sm-12 col-md-4 col-lg-3 footer-links">
+                                <h4 class="h4">Informations</h4>
+                                <ul>
+                                    <li><a href="#">My Account</a></li>
+                                    <li><a href="#">About us</a></li>
+                                    <li><a href="#">Login</a></li>
+                                    <li><a href="#">Privacy policy</a></li>
+                                    <li><a href="#">Terms &amp; condition</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-4 col-lg-3 footer-links">
+                                <h4 class="h4">Customer Services</h4>
+                                <ul>
+                                    <li><a href="#">Request Personal Data</a></li>
+                                    <li><a href="#">FAQ's</a></li>
+                                    <li><a href="#">Contact Us</a></li>
+                                    <li><a href="#">Orders and Returns</a></li>
+                                    <li><a href="#">Support Center</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-12 col-sm-12 col-md-12 col-lg-4 newsletter-col">
+                                <div class="display-table pt-md-3 pt-lg-0">
+                                    <!-- <div class="display-table-cell footer-newsletter">
+                                        <form action="#" method="post">
+                                            <label class="h4">NEWSLETTER SIGN UP</label>
+                                            <p>Enter Your Email To Receive Daily News And Get 20% Off Coupon For All Items.</p>
+                                            <div class="input-group">
+                                                <input type="email" class="brounded-start input-group__field newsletter-input mb-0" name="EMAIL" value="" placeholder="Email address" required>
+                                                <span class="input-group__btn">
+                                                    <button type="submit" class="btn newsletter__submit rounded-end" name="commit" id="Subscribe"><i class="an an-envelope-l"></i></button>
+                                                </span>
+                                            </div>
+                                        </form>
+                                    </div> -->
+                                </div>
+                                <ul class="list-inline social-icons mt-3 pt-1">
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Facebook"><i class="an an-facebook" aria-hidden="true"></i></a></li>
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Twitter"><i class="an an-twitter" aria-hidden="true"></i></a></li>
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Pinterest"><i class="an an-pinterest-p" aria-hidden="true"></i></a></li>
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Instagram"><i class="an an-instagram" aria-hidden="true"></i></a></li>
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="TikTok"><i class="an an-tiktok" aria-hidden="true"></i></a></li>
+                                    <li class="list-inline-item"><a href="#" data-bs-toggle="tooltip" data-bs-placement="top" title="Whatsapp"><i class="an an-whatsapp" aria-hidden="true"></i></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom clearfix">
+                    <div class="container">
+                        <div class="d-flex-center flex-column justify-content-md-between flex-md-row-reverse">
+                            <img src="{% static 'assets/images/payment.png' %}" alt="Paypal Visa Payments"/>
+                            <div class="copytext text-uppercase">&copy; 2025 Hottracks.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--End Footer-->
+
+          
+            <!-- Including Jquery -->
+            <script src="{% static 'assets/js/vendor/jquery-min.js' %}"></script>
+            <script src="{% static 'assets/js/vendor/js.cookie.js' %}"></script>
+            <!--Including Javascript-->
+            <script src="{% static 'assets/js/plugins.js' %}"></script>
+            <script src="{% static 'assets/js/main.js' %}"></script>
+            
+
+         
+
+
+
+        </div>
+        <!--End Page Wrapper-->
+    </body>
+
+
+</html>

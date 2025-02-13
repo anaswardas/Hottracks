@@ -1,0 +1,81 @@
+{% extends 'admin_page/admin_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Product Management</h2>
+    <a href="{% url 'add_product' %}" class="btn btn-primary mb-3">Add Product</a>
+
+    <table class="table table-bordered text-center">
+        <thead>
+            {% if messages %}
+                    <div class="mt-3" id="message-container">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}" role="alert">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+            <tr>
+                <th>Sl No</th>
+                <th>Image</th>
+                <th>Product Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Stock Count</th> <!-- Added column for stock count -->
+                <th>Stock Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                
+                <!-- Add Image Field -->
+                <td>
+                    {% if product.image1 %}
+                        <img src="{{ product.image1.url }}" alt="{{ product.name }}" style="width: 100px; height: auto;">
+                    {% else %}
+                        <p>No image available</p>
+                    {% endif %}
+                </td>
+                
+                <td>{{ product.name }}</td>
+                <td>{{ product.description }}</td>
+                <td>₹{{ product.price }}</td>
+                <td>{{ product.stock_count }}</td> <!-- Display stock count -->
+                <td>
+                    {% if product.is_in_stock %}
+                        <span class="badge badge-success">In Stock</span>
+                    {% else %}
+                        <span class="badge badge-danger">Out of Stock</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'edit_product' product.id %}" class="btn btn-warning btn-sm">Edit</a>
+                    
+                    <form method="POST" action="{% url 'product_stocks' product.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        {% if product.is_in_stock %}
+                            <button type="submit" class="btn btn-danger btn-sm">Unlist</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-success btn-sm">List</button>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<script>
+    // Timer to dismiss the alert messages after 5 seconds
+    setTimeout(function() {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 5000); // 5000 milliseconds = 5 seconds
+</script>
+{% endblock %}

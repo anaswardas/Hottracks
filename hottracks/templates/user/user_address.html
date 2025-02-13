@@ -1,0 +1,545 @@
+{% extends "user/user_base.html" %}
+
+{% block title %} User login{% endblock %}
+{% load static %}
+
+{% block extra_styles %}
+
+
+{% endblock %}
+
+{% block nav_links %}
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+{% endblock %}
+
+
+{% block content %}  
+
+            <!--Body Container-->
+            <div id="page-content">
+                <!--Collection Banner-->
+                <div class="collection-header">
+                    <div class="collection-hero">
+                        <div class="collection-hero__image"></div>
+                        <div class="collection-hero__title-wrapper container">
+                            <h1 class="collection-hero__title">My Account</h1>
+                            <div class="breadcrumbs text-uppercase mt-1 mt-lg-2"><a href="{% url 'user_home' %}" title="Back to the home page">Home</a><span>|</span><span class="fw-bold">My Account</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!--End Collection Banner-->
+
+                <!--Container-->
+                <div class="container pt-2">
+                    <!--Main Content-->
+                    <div class="dashboard-upper-info">
+                        <div class="row align-items-center g-0">
+                            <div class="col-xl-3 col-lg-3 col-sm-6">
+                                <div class="d-single-info">
+                                    <p class="user-name">Hello <span class="fw-600">optimal</span></p>
+                                    <p>(not optimal? <a class="link-underline fw-600" href="{% url 'user_logout' %}">Log Out</a>)</p>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-lg-4 col-sm-6">
+                                <div class="d-single-info">
+                                    <p>Need Assistance? Customer service at.</p>
+                                    <p><a href="mailto:admin@example.com">hottracks@gmail.com</a></p>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-3 col-sm-6">
+                                <div class="d-single-info">
+                                    <p>E-mail them at </p>
+                                    <p><a href="mailto:support@example.com">{{user.email}}</a></p>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-2 col-sm-6">
+                                <div class="d-single-info text-lg-center">
+                                    <a class="link-underline fw-600 view-cart" href="{% url 'user_cart' %}"><i class="icon an an-sq-bag me-2"></i>View Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 mb-lg-5 pb-lg-5">
+                        <div class="col-xl-3 col-lg-2 col-md-12 mb-4 mb-lg-0">
+                         <!-- Nav tabs -->
+                         <ul class="nav flex-column bg-light h-100 dashboard-list" role="tablist">
+                            <!-- <li><a class="nav-link "  href="{% url 'profile_dashboard">Dashboard</a></li> -->
+                            <!-- <li><a class="nav-link "  href="{% url 'order' user.id ">Orders</a></li> -->
+                            <li><a class="nav-link"  href="{% url 'wallet_view' %}  ">Wallet</a></li>                            
+                            <li><a class="nav-link active"  href="{% url 'view_address'%}">Addresses</a></li>
+                            <li><a class="nav-link "  href="{% url 'user_account'%} ">Account details</a></li>
+                            <li><a class="nav-link"  href="{% url 'change_password'%} ">Change Password</a></li>
+                            <li><a class="nav-link" href="{% url 'user_logout' %}">logout</a></li>
+                        </ul>
+                        <!-- End Nav tabs -->
+                        </div>
+
+                        <div class="col-xl-9 col-lg-10 col-md-12">
+                            <!-- Tab panes -->
+                
+                            
+                            
+                                <!-- Address -->
+                                <div id="address" class="tab-pane fade active show">
+                                    <h3>Addresses</h3>
+                                    <p class="xs-fon-13 margin-10px-bottom">The following addresses will be used on the checkout page by default.</p>
+                                    <div class="row">
+                                        {% if messages %}
+                                        <div class="mt-3" id="message-container">
+                                            {% for message in messages %}
+                                            <div class="alert alert-{{ message.tags }}" role="alert">
+                                                {{ message }}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        {% for address in Addresses %}
+                                        <div class="col-12 col-sm-6 mb-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title billing-address">Shipping address</h5>
+                                                    <a class="card-link link-underline view" href="#" onclick="editAddress('{{ address.id }}', '{{ address.name }}', '{{ address.house_no }}', '{{ address.city }}', '{{ address.state }}', '{{ address.country }}', '{{ address.pincode }}', '{{ address.phone }}')">Edit</a>
+                                                    <form action="{% url 'delete_address' address.id %}" method="post" style="display:inline;" id="delete-form-{{ address.id }}">
+                                                        {% csrf_token %}
+                                                        <a href="#" class="card-link link-underline view" style="text-decoration: underline; color: rgb(5, 5, 5); margin-left: 10px;" onclick="confirmDelete('{{ address.id }}')">Delete</a>
+                                                    </form>
+                                                    <p class="card-text">
+                                                        <strong>{{ address.name }}</strong><br>
+                                                        {{ address.house_no }},<br>
+                                                        {{ address.city }},{{ address.state }},<br>
+                                                        {{ address.country }}<br>
+                                                        Pincode: {{ address.pincode }}<br>
+                                                        Phone: {{ address.phone }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        
+                                        <div class="accordion add-address mt-3" id="address1">
+                                            <button class="btn btn--small rounded btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#shipping" aria-expanded="false" aria-controls="shipping">Add Address</button>
+                                            <div id="shipping" class="accordion-collapse collapse" data-bs-parent="#address">
+                                                <form class="address-form mt-3" method="post" action="{% url 'add_address' %}">
+                                                    {% csrf_token %}
+                                                    <fieldset>
+                                                        <h2 class="login-title mb-3">Shipping details</h2>
+                                                        <div class="row">
+                                                            <div class="form-group col-md-6 col-lg-12 col-xl-12">
+                                                                <label for="input-firstname1" class="d-none"> Name <span class="required-f">*</span></label>
+                                                                <input name="firstname" placeholder="Name" value="" id="input-firstname1" type="text" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-email1" class="d-none">Email <span class="required-f">*</span></label>
+                                                                <input name="email" placeholder="Email" value="" id="input-email1" type="email" required>
+                                                            </div>
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-telephone1" class="d-none">Phone number <span class="required-f">*</span></label>
+                                                                <input name="phone" placeholder="phone" value="" id="input-phone" type="tel" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="input-house-no" class="d-none">House No. <span class="required-f">*</span></label>
+                                                            <input name="house_no" placeholder="House No." value="" id="input-house-no" type="text" required>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-city" class="d-none">City <span class="required-f">*</span></label>
+                                                                <input name="city" placeholder="City" value="" id="input-city" type="text" required>
+                                                            </div>
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-state" class="d-none">State <span class="required-f">*</span></label>
+                                                                <input name="state" placeholder="State" value="" id="input-state" type="text" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-country" class="d-none">Country <span class="required-f">*</span></label>
+                                                                <input name="country" placeholder="Country" value="" id="input-country" type="text" required>
+                                                            </div>
+                                                            <div class="form-group col-md-6 col-lg-6 col-xl-6">
+                                                                <label for="input-pincode" class="d-none">Pincode <span class="required-f">*</span></label>
+                                                                <input name="pincode" placeholder="Pincode" value="" id="input-pincode" type="text" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <button type="submit" class="btn rounded mb-3">Submit</button>
+                                                        </div>
+                                                    </fieldset>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <script>
+                                    function editAddress(id, name, house_no, city, state, country, pincode, phone) {
+                                        $('#editAddressModal').modal('show');
+                                        $('#editAddressForm').attr('action', '{% url "edit_address" 0 %}'.replace('0', id));
+                                        $('#editAddressId').val(id);
+                                        $('#editName').val(name);
+                                        $('#editHouseNo').val(house_no);
+                                        $('#editCity').val(city);
+                                        $('#editState').val(state);
+                                        $('#editCountry').val(country);
+                                        $('#editPincode').val(pincode);
+                                        $('#editPhone').val(phone);
+                                    }
+                                
+                                    function confirmDelete(id) {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "You won't be able to revert this!",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#3085d6',
+                                            cancelButtonColor: '#d33',
+                                            confirmButtonText: 'Yes, delete it!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                document.getElementById('delete-form-' + id).submit();
+                                            }
+                                        })
+                                    }
+                                
+                                    // Hide messages after 5 seconds
+                                    setTimeout(function() {
+                                        var messageContainer = document.getElementById('message-container');
+                                        if (messageContainer) {
+                                            messageContainer.style.display = 'none';
+                                        }
+                                    }, 5000); // 5000 milliseconds = 5 seconds
+                                </script>
+                                
+                                
+                                
+                                <!-- Modal for Edit Address -->
+                                <div class="modal fade" id="editAddressModal" tabindex="-1" role="dialog" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form id="editAddressForm" method="post">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="address_id" id="editAddressId">
+                                                    <div class="form-group">
+                                                        <label for="editName">Name</label>
+                                                        <input type="text" class="form-control" id="editName" name="name" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editHouseNo">House No.</label>
+                                                        <input type="text" class="form-control" id="editHouseNo" name="house_no" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editCity">City</label>
+                                                        <input type="text" class="form-control" id="editCity" name="city" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editState">State</label>
+                                                        <input type="text" class="form-control" id="editState" name="state" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editCountry">Country</label>
+                                                        <input type="text" class="form-control" id="editCountry" name="country" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editPincode">Pincode</label>
+                                                        <input type="text" class="form-control" id="editPincode" name="pincode" required>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="editPhone">Phone</label>
+                                                        <input type="tel" class="form-control" id="editPhone" name="phone" required>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <script>
+                                    function editAddress(id, name, house_no, city, state, country, pincode, phone) {
+                                        $('#editAddressModal').modal('show');
+                                        $('#editAddressForm').attr('action', '{% url "edit_address" 0 %}'.replace('0', id));
+                                        $('#editAddressId').val(id);
+                                        $('#editName').val(name);
+                                        $('#editHouseNo').val(house_no);
+                                        $('#editCity').val(city);
+                                        $('#editState').val(state);
+                                        $('#editCountry').val(country);
+                                        $('#editPincode').val(pincode);
+                                        $('#editPhone').val(phone);
+                                    }
+                                
+                                    function confirmDelete(id) {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "You won't be able to revert this!",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#3085d6',
+                                            cancelButtonColor: '#d33',
+                                            confirmButtonText: 'Yes, delete it!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                document.getElementById('delete-form-' + id).submit();
+                                            }
+                                        })
+                                    }
+                                </script>
+                                
+                                
+                                    
+                                    </div>
+                                </div>
+                                <!-- End Address -->
+                          
+                            <!-- Edit Modal HTML -->
+                            <div class="modal fade" id="editAddressModal" tabindex="-1" role="dialog" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <form id="editAddressForm" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="address_id" id="editAddressId">
+                                                <div class="form-group">
+                                                    <label for="editName">Name</label>
+                                                    <input type="text" class="form-control" id="editName" name="name" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editHouseNo">House No.</label>
+                                                    <input type="text" class="form-control" id="editHouseNo" name="house_no" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editCity">City</label>
+                                                    <input type="text" class="form-control" id="editCity" name="city" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editState">State</label>
+                                                    <input type="text" class="form-control" id="editState" name="state" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editCountry">Country</label>
+                                                    <input type="text" class="form-control" id="editCountry" name="country" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editPincode">Pincode</label>
+                                                    <input type="text" class="form-control" id="editPincode" name="pincode" required>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editPhone">Phone</label>
+                                                    <input type="tel" class="form-control" id="editPhone" name="phone" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Save changes</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <script>
+                                $('#editAddressModal').on('show.bs.modal', function (event) {
+                                    var button = $(event.relatedTarget);
+                                    var addressId = button.data('id');
+                                    var name = button.data('name');
+                                    var houseNo = button.data('house_no');
+                                    var city = button.data('city');
+                                    var state = button.data('state');
+                                    var country = button.data('country');
+                                    var pincode = button.data('pincode');
+                                    var phone = button.data('phone');
+                                
+                                    var modal = $(this);
+                                    var actionUrl = '{% url "edit_address" 0 %}'.replace('0', addressId);
+                                    modal.find('#editAddressForm').attr('action', actionUrl);
+                                    modal.find('#editAddressId').val(addressId);
+                                    modal.find('#editName').val(name);
+                                    modal.find('#editHouseNo').val(houseNo);
+                                    modal.find('#editCity').val(city);
+                                    modal.find('#editState').val(state);
+                                    modal.find('#editCountry').val(country);
+                                    modal.find('#editPincode').val(pincode);
+                                    modal.find('#editPhone').val(phone);
+                                });
+                                
+                                
+                            </script>
+                            
+                               
+                            </div>
+                            <!-- End Tab panes -->
+                        </div>
+                    </div>
+                    <!--End Main Content-->
+                </div>
+                <!--End Container-->
+            </div>
+            <!--End Body Container-->
+
+            {% endblock %}
+
+         
+            {% block scripts %}
+            <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+            <script>
+                $(document).ready(function(){
+                    $('#deleteConfirmationModal').on('show.bs.modal', function (event) {
+                        var button = $(event.relatedTarget); 
+                        var url = button.data('url'); 
+                        var modal = $(this);
+                        modal.find('#confirmDeleteButton').attr('href', url);
+                    });
+                });
+                
+                
+              </script>
+
+              <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    $('#editAddressModal').on('show.bs.modal', function(event) {
+                        var button = $(event.relatedTarget); // Button that triggered the modal
+                        var addressId = button.data('id');
+                        var addressName = button.data('name');
+                        var addressHouseNo = button.data('house_no');
+                        var addressCity = button.data('city');
+                        var addressState = button.data('state');
+                        var addressCountry = button.data('country');
+                        var addressPincode = button.data('pincode');
+                        var addressPhone = button.data('phone');
+                
+                        var modal = $(this);
+                        modal.find('#editAddressId').val(addressId);
+                        modal.find('#editName').val(addressName);
+                        modal.find('#editHouseNo').val(addressHouseNo);
+                        modal.find('#editCity').val(addressCity);
+                        modal.find('#editState').val(addressState);
+                        modal.find('#editCountry').val(addressCountry);
+                        modal.find('#editPincode').val(addressPincode);
+                        modal.find('#editPhone').val(addressPhone);
+                
+                        // Set the form action dynamically
+                        modal.find('#editAddressForm').attr('action', '{% url "edit_address" 0 %}'.replace('/0/', '/' + addressId + '/'));
+                    });
+                });
+                </script>
+                
+                
+                
+                <script>
+                    document.querySelector('.address-form').addEventListener('submit', function(event) {
+                        let formIsValid = true;
+                        
+                        const name = document.getElementById('input-name1');
+                        const email = document.getElementById('input-email1');
+                        const phone = document.getElementById('input-phone');
+                        const houseNo = document.getElementById('input-house-no');
+                        const city = document.getElementById('input-city');
+                        const state = document.getElementById('input-state');
+                        const country = document.getElementById('input-country');
+                        const pincode = document.getElementById('input-pincode');
+                    
+                        // Example: Check if phone number is valid
+                        const phonePattern = /^[0-9]{10}$/;
+                        if (!phonePattern.test(phone.value)) {
+                            formIsValid = false;
+                            alert('Please enter a valid 10-digit phone number.');
+                        }
+                    
+                        // Example: Check if pincode is valid
+                        const pincodePattern = /^[0-9]{6}$/;
+                        if (!pincodePattern.test(pincode.value)) {
+                            formIsValid = false;
+                            alert('Please enter a valid 6-digit pincode.');
+                        }
+                    
+                        // Prevent form submission if validation fails
+                        if (!formIsValid) {
+                            event.preventDefault();
+                        }
+                    });
+                    </script>
+                    <script>
+                        $('#editAddressModal').on('show.bs.modal', function (event) {
+                          var button = $(event.relatedTarget); // Button that triggered the modal
+                          var modal = $(this);
+                      
+                          // Populate the modal with the data attributes from the button
+                          modal.find('#editAddressId').val(button.data('id'));
+                          modal.find('#editName').val(button.data('name'));
+                          modal.find('#editHouseNo').val(button.data('house_no'));
+                          modal.find('#editCity').val(button.data('city'));
+                          modal.find('#editState').val(button.data('state'));
+                          modal.find('#editCountry').val(button.data('country'));
+                          modal.find('#editPincode').val(button.data('pincode'));
+                          modal.find('#editPhone').val(button.data('phone'));
+                        });
+                      </script>
+                      <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            // Select all alert messages
+                            var alerts = document.querySelectorAll('.alert');
+                            if (alerts) {
+                                // Set a timeout to hide alerts after 5 seconds
+                                setTimeout(function() {
+                                    alerts.forEach(function(alert) {
+                                        alert.style.transition = "opacity 0.5s ease";
+                                        alert.style.opacity = '0';
+                                        // Remove the alert from the DOM after transition
+                                        setTimeout(function() {
+                                            alert.remove();
+                                        }, 500);
+                                    });
+                                }, 3000); 
+                            }
+                        });
+                       
+                        </script>
+                        <script>
+                            // Timer to dismiss the alert messages after 5 seconds
+                            setTimeout(function() {
+                                const messageContainer = document.getElementById('message-container');
+                                if (messageContainer) {
+                                    messageContainer.style.display = 'none';
+                                }
+                            }, 5000); // 5000 milliseconds = 5 seconds
+                        </script>
+                        <script>
+                            // Assuming you are using a loop to generate a list of addresses (e.g., in Django template)
+                            // Add a click event to the edit button
+                        
+                            function openEditModal(addressId, name, houseNo, city, state, country, pincode, phone) {
+                                // Set the values in the form fields
+                                document.getElementById("editAddressId").value = addressId;
+                                document.getElementById("editName").value = name;
+                                document.getElementById("editHouseNo").value = houseNo;
+                                document.getElementById("editCity").value = city;
+                                document.getElementById("editState").value = state;
+                                document.getElementById("editCountry").value = country;
+                                document.getElementById("editPincode").value = pincode;
+                                document.getElementById("editPhone").value = phone;
+                        
+                                // Show the modal
+                                $('#editAddressModal').modal('show');
+                            }
+                        </script>
+                        
+                        
+                        
+            {% endblock %}
