@@ -1,0 +1,201 @@
+
+{% extends 'user/user_base.html' %}
+{% block title %}home - Hot Tracks{% endblock %}
+
+{% block content %}
+{% load static %}  
+{% if messages %}
+                        <div class="messages">
+                            {% for message in messages %}
+                                {% if 'login_error' in message.tags %}
+                                    <div class="alert alert-danger">{{ message }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+ <!--Body Container-->
+ <div id="page-content">
+    
+    <!--Home Slider-->
+    <section class="slideshow slideshow-wrapper">
+        <div class="home-slideshow">
+            
+            <div class="slide">
+                <div class=" lazyload">
+                    <img class=" lazyload desktop-hide" data-src="{% static 'assets/images/home_page.jpg' %}" src="{% static 'assets/images/home_page_2.jpg' %}" alt="HIGH CONVERTING" title="HIGH CONVERTING" />
+                    <img class=" lazyload mobile-hide" data-src="{% static 'assets/images/home_page_2.jpg' %}" src="{% static 'assets/images/home_page_2.jpg' %}" alt="HIGH CONVERTING" title="HIGH CONVERTING" />
+
+                    <div class="container">
+                        <div class="slideshow-content slideshow-overlay bottom-middle d-flex justify-content-center align-items-center">
+                            <div class="slideshow-content-in text-center">
+                                <div class="wrap-caption animation style2 whiteText px-2">
+                                    <p class="ss-small-title fs-5 mb-2">Simple, Clean</p>
+                                    <h1 class="h1 mega-title ss-mega-title fs-1">HIGH CONVERTING</h1>
+                                    <!-- <span class="mega-subtitle fs-6 ss-sub-title">Creative, Flexible, and High-Performance Alloy Wheels Template!</span> -->
+                                    <div class="ss-btnWrap">
+                                        <a class="btn btn-lg rounded btn-primary" href="{% url 'user_product' %}">Shop Alloy Wheels</a>
+                                        <!-- <a class="btn btn-lg rounded btn-primary" href="shop-left-sidebar.html">Shop Men’s Alloy Wheels</a> -->
+                                    </div>
+                                    
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--End Home Slider-->
+
+ <!--Best Seller-->
+<section class="section product-slider">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 section-header style1">
+                <div class="section-header-left">
+                    <h2>BEST SELLER</h2>
+                    <p>TOP SALE IN THIS WEEK</p>
+                </div>
+            </div>
+        </div>
+        <div class="grid-products">
+            <div class="row">
+                {% for product in products %}
+                <div class="item col-lg-3 col-md-4 col-3">
+                    <!--Start Product Image-->
+                    <div class="product-image">
+                        <a href="{% url 'user_product' %}" class="product-img">
+                            <!--Image-->
+                            <img class="primary blur-up lazyload" src="{{ product.image1.url }}" alt="image" title="">
+                            <!--End image-->
+                            <!--Hover image-->
+                            <img class="hover blur-up lazyload" src="{{ product.image2.url }}" alt="image" title="">
+                            <!--End hover image-->
+                        </a>
+                    </div>
+                    <!--End Product Image-->
+                    
+                    <!--Start Product Details-->
+                    <div class="product-details text-center">
+                        <!--Product Name-->
+                        <div class="product-name text-uppercase">
+                            <a href="{% url 'user_product' %}">{{ product.name }}</a>
+                        </div>
+                        <!--End Product Name-->
+                        
+                        <!--Product Price-->
+                        <div class="product-price">
+                            <span class="price">${{ product.price }}</span>
+                        </div>
+                        <!--End Product Price-->
+                        
+                        <!--Product Review-->
+                       
+                        <!--End Product Review-->
+                    </div>
+                    <!--End Product Details-->
+                </div>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col-12 text-center mt-3">
+                    <a href="{% url 'user_product' %}" class="btn-primary btn-lg rounded">Shop All</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!--End Best Seller-->
+
+
+    <!--Store Feature-->
+    <section class="store-features pb-0">
+        <div class="container">
+            <div class="row store-info">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3 my-sm-3">
+                    <a class="d-flex clr-none" href="#">
+                        <i class="an an-truck-l"></i>
+                        <div class="detail">
+                            <h5 class="fs-6 text-uppercase mb-1">Free Shipping &amp; Return</h5>
+                            <p class="sub-text">Free shipping on all US orders</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3 my-sm-3">
+                    <a class="d-flex clr-none" href="#">
+                        <i class="an an-dollar-sign-l"></i>
+                        <div class="detail">
+                            <h5 class="fs-6 text-uppercase mb-1">Money Guarantee</h5>
+                            <p class="sub-text">30 days money back guarantee</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3 my-sm-3">
+                    <a class="d-flex clr-none" href="#">
+                        <i class="an an-credit-card-l"></i>
+                        <div class="detail">
+                            <h5 class="fs-6 text-uppercase mb-1">Online Support</h5>
+                            <p class="sub-text">We support online 24/7 on day</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-1 my-sm-3">
+                    <a class="d-flex clr-none" href="#">
+                        <i class="an an-award"></i>
+                        <div class="detail">
+                            <h5 class="fs-6 text-uppercase mb-1">Payment Security</h5>
+                            <p class="sub-text">More than 8 different secure</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--End Store Feature-->
+
+
+ 
+
+    <!--Blog Post-->
+    <section class="section category-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Shop by Categories</h2>
+                <p>Explore Our Top Categories</p>
+            </div>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="category-item">
+                        <a href="{% url 'user_product' %}" class="category-link">
+                            <img class="blur-up lazyload category-image" 
+                                 src="{{ category.category_image.url }}" 
+                                 alt="{{ category.name }}" 
+                                 title="{{ category.name }}"
+                                 style="width: 100%; height: 200px; object-fit: cover;" />
+                            <h3 class="category-name">{{ category.name }}</h3>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    
+    
+    <!--End Blog Post-->
+</div>
+<!--End Body Container-->
+
+<script>
+      // Timer to dismiss the alert messages after 5 seconds
+      setTimeout(function() {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.style.display = 'none';
+        }
+    }, 5000);
+</script>
+{% endblock %}

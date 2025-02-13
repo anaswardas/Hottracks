@@ -1,0 +1,104 @@
+
+{% extends "admin_page/admin_base.html" %}
+{% load static %}
+{% block title %}Add Coupon{% endblock %}
+
+{% block extra_styles %}
+<!-- Custom style CSS -->
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Add New Coupon</h4>
+                </div>
+                <!-- Alert Messages -->
+                {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert">
+                    <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+                        <use xlink:href="#exclamation-triangle-fill"/>
+                    </svg>
+                    <div>
+                        {{ message }}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                <div class="card-body">
+                    <div id="addProductsFormContainer">
+                       
+                        <form id="addProductsForm" action="{% url 'add_coupon' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="title">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="coupon_code">Coupon Code</label>
+                                <input type="text" class="form-control" id="coupon_code" name="coupon_code" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="discount_percentage">Discount Percentage</label>
+                                <input type="number" step="0.01" class="form-control" id="discount_percentage" name="discount_percentage" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="start_date">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="end_date">End Date</label>
+                                <input type="date" class="form-control" id="end_date" name="end_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="min_amount">Minimum Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="min_amount" name="min_amount" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="max_amount">Maximum Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="max_amount" name="max_amount" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="active">Active</label>
+                                <input type="checkbox" class="form-control" id="active" name="active">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+     
+    
+
+{% endblock %}
+
+{% block scripts %}
+
+
+
+                
+<script src="{% static 'adminassets/bundles/datatables/datatables.min.js' %}"></script>
+<script src="{% static 'adminassets/bundles/datatables/DataTables-1.10.16/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'adminassets/js/page/datatables.js' %}"></script>
+<script src="{% static 'adminassets/js/scripts.js' %}"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  
+{% endblock %}

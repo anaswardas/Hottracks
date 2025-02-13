@@ -1,0 +1,156 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Order Details{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Order Details</h2>
+
+            <!-- Order Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="card-title">Order Information</h5>
+                            <p><strong>Order ID:</strong> {{ order.id }}</p>
+                            <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                            <p><strong>Payment Method:</strong> {{ order.payment_method|default:"N/A" }}</p>
+                            <p>
+                                <strong>Status:</strong> 
+                                <span class="badge 
+                                    {% if order.status == 'Pending' %}bg-warning
+                                    {% elif order.status == 'Delivered' %}bg-success
+                                    {% elif order.status == 'Cancelled' %}bg-danger
+                                    {% else %}bg-info{% endif %}">
+                                    {{ order.status }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="card-title">Shipping Address</h5>
+                            <address>
+                                <strong>{{ order.address.full_name }}</strong><br>
+                                {{ order.address.house_name }}, {{ order.address.street }}<br>
+                                {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}<br>
+                                <strong>Phone:</strong> {{ order.address.phone_number }}
+                            </address>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ordered Products -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Ordered Products</h5>
+                    {% for item in order_products %}
+                    <div class="row mb-3 align-items-center">
+                        <div class="col-md-2">
+                            <img src="{{ item.product.image1.url }}" 
+                                 alt="{{ item.product.name }}" 
+                                 class="img-fluid rounded shadow-sm"
+                                 onerror="this.src='/static/images/default-product.png';">
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                            <small class="text-muted">Product ID: {{ item.product.id }}</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <span class="text-muted">Price:</span>
+                            <br>₹{{ item.price|floatformat:2 }}
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <span class="text-muted">Subtotal:</span>
+                            <br>₹{{ item.subtotal|floatformat:2 }}
+                        </div>
+                    </div>
+                    {% if not forloop.last %}
+                    <hr>
+                    {% endif %}
+                    {% empty %}
+                    <p class="text-center text-muted">No items found in this order.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="table-responsive order-table style1 mt-3">
+                <table class="table table-bordered align-middle table-hover text-center mb-1">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-start">Name</th>
+                            <th>Price (₹)</th>
+                            <th>Subtotal (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_products %}
+                        <tr>
+                            <td>
+                                <img src="{{ item.product.image1.url }}" 
+                                     alt="{{ item.product.name }}" 
+                                     width="80" 
+                                     class="rounded shadow-sm"
+                                     onerror="this.src='/static/images/default-product.png';">
+                            </td>
+                            <td class="text-start">{{ item.product.name }}</td>
+                            <td>{{ item.price|floatformat:2 }}</td>
+                            <td>{{ item.subtotal|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No items found in this order.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Subtotal</td>
+                            <td id="checkout-subtotal">{{ subtotal|floatformat:2 }} ₹</td>
+                        </tr>
+                    
+                        {% if discount and discount > 0 %}
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Coupon Discount</td>
+                            <td id="checkout-discount">- {{ discount|floatformat:2 }} ₹</td>
+                        </tr>
+                        {% endif %}
+                    
+                        <tr>
+                            <td colspan="3" class="text-end fw-bold">Tax (0.1%)</td>
+                            <td id="checkout-tax">{{ total_tax|floatformat:2 }} ₹</td>
+                        </tr>
+                    
+                        <tr class="bg-light">
+                            <td colspan="3" class="text-end fw-bold">Final Total</td>
+                            <td><strong id="checkout-total">{{ final_order_total|floatformat:2 }}</strong> ₹</td>
+                        </tr>
+                    </tfoot>
+                    
+                </table>
+            </div>
+
+            <!-- Action Buttons -->
+            {% if order.status == "Pending" or order.status == "Delivered" %}
+            <div class="mt-4 text-end">
+                <form method="POST" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" 
+                            class="btn {% if order.status == 'Pending' %}btn-danger{% else %}btn-warning{% endif %}">
+                        {% if order.status == "Pending" %}
+                            Cancel Order
+                        {% else %}
+                            Return Order
+                        {% endif %}
+                    </button>
+                </form>
+                <a href="{% url 'user_account' %}" class="btn btn-secondary ms-2">Back to Orders</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

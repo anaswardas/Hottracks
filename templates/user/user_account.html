@@ -1,0 +1,234 @@
+{% extends "user/user_base.html" %}
+
+{% block title %} User Account {% endblock %}
+{% load static %}
+
+{% block extra_styles %} {% endblock %}
+
+{% block nav_links %} {% endblock %}
+
+{% block content %}
+
+<!--Body Container-->
+<div id="page-content">
+    <!--Collection Banner-->
+    <div class="collection-header">
+        <div class="collection-hero">
+            <div class="collection-hero__image"></div>
+            <div class="collection-hero__title-wrapper container">
+                <h1 class="collection-hero__title">My Account</h1>
+                <div class="breadcrumbs text-uppercase mt-1 mt-lg-2">
+                    <a href="{% url 'user_home' %}" title="Back to the home page">Home</a><span>|</span>
+                    <span class="fw-bold">My Account</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--End Collection Banner-->
+
+    <!--Container-->
+    <div class="container pt-2">
+        <!--Main Content-->
+        <div class="dashboard-upper-info">
+            <div class="row align-items-center g-0">
+                <div class="col-xl-3 col-lg-3 col-sm-6">
+                    <div class="d-single-info">
+                        <p class="user-name">Hello <span class="fw-600">{{user.name}}</span></p>
+                        <p>(not optimal? <a class="link-underline fw-600" href="{% url 'user_logout' %}">Log Out</a>)</p>
+                    </div>
+                </div>
+                <div class="col-xl-4 col-lg-4 col-sm-6">
+                    <div class="d-single-info">
+                        <p>Need Assistance? Customer service at.</p>
+                        <p><a href="mailto:admin@example.com">helmetologist@example.com</a></p>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-sm-6">
+                    <div class="d-single-info">
+                        <p>E-mail them at </p>
+                        <p><a href="mailto:support@example.com">{{user.email}}</a></p>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-lg-2 col-sm-6">
+                    <div class="d-single-info text-lg-center">
+                        <a class="link-underline fw-600 view-cart" href="{% url 'user_cart' %}"><i class="icon an an-sq-bag me-2"></i>View Cart</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4 mb-lg-5 pb-lg-5">
+            <div class="col-xl-3 col-lg-2 col-md-12 mb-4 mb-lg-0">
+                <!-- Nav tabs -->
+                <ul class="nav flex-column bg-light h-100 dashboard-list" role="tablist">
+                   <!-- <li><a class="nav-link "  href="{% url 'profile_dashboard">Dashboard</a></li> -->
+                   <!-- <li><a class="nav-link "  href="{% url 'order' user.id ">Orders</a></li> -->
+                   <li><a class="nav-link"  href="{% url 'wallet_view' %}  ">Wallet</a></li>                            
+                   <li><a class="nav-link active"  href="{% url 'view_address'%}">Addresses</a></li>
+                   <li><a class="nav-link "  href="{% url 'user_account'%} ">Account details</a></li>
+                   <li><a class="nav-link"  href="{% url 'change_password'%} ">Change Password</a></li>
+                   <li><a class="nav-link" href="{% url 'user_logout' %}">logout</a></li>
+               </ul>
+               <!-- End Nav tabs -->
+               </div>
+
+            <div class="col-xl-9 col-lg-10 col-md-12">
+                <!-- Tab panes -->
+                <div class="tab-content dashboard-content">
+                    <!-- Dashboard -->
+                    <div id="account" class="tab-pane fade active show">
+                        <h3>Account </h3>
+                        <p>From your account dashboard, you can easily check &amp; view your
+                            <a class="text-decoration-underline" href="#">recent orders</a>, manage your
+                            <a class="text-decoration-underline" href="#">shipping and billing addresses</a> and
+                            <a class="text-decoration-underline" href="#">edit your password and account details.</a>
+                        </p>
+                        <div class="row user-profile mt-4">
+                            <div class="col-12 col-lg-6">
+                                <div class="profile-img">
+                                    <div class="detail ms-3">
+                                        <h5 class="mb-1">{{user.username}}</h5>
+                                    </div>
+                                    <div class="lbl">SILVER USER</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-6">
+                                <ul class="profile-order mt-3 mt-lg-0">
+                                    <li>
+                                        <h3 class="mb-1">{{order_count}}</h3>
+                                        All Orders
+                                    </li>
+                                    <li>
+                                        <h3 class="mb-1">{{pending_orders_count}}</h3>
+                                        Awaiting Payments
+                                    </li>
+                                    <li>
+                                        <h3 class="mb-1">{{shipped_orders_count}}</h3>
+                                        Shipped
+                                    </li>
+                                    <li>
+                                        <h3 class="mb-1">{{delivered_orders_count}}</h3>
+                                        Delivered
+                                    </li>
+                                    <li>
+                                        <h3 class="mb-1">{{cancelled_orders_count}}</h3>
+                                        Cancelled
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive order-table mt-4">
+                            <table class="table table-bordered table-hover align-middle text-center mb-0">
+                                <thead class="alt-font">
+                                    <tr>
+                                        <th>Sl. No</th>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Payment Status</th>
+                                        <th>Shipping Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td>{{ forloop.counter|add:orders.start_index|add:-1 }}</td>
+                                        <td>{{ order.orderid }}</td>  <!-- Changed to orderid for better tracking -->
+                                        <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                        <td class="text-success">
+                                            {% if order.payment and order.payment.status %}
+                                                {{ order.payment.status }}
+                                            {% else %}
+                                                <span class="text-danger">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.shipping_status }}</td>
+                                        <td>
+                                            <a href="{% url 'order_details' order.id %}" class="btn btn-info">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">No orders found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div class="pagination mt-3">
+                            {% if orders.has_previous %}
+                                <a href="?page=1" class="btn btn-outline-secondary">First</a>
+                                <a href="?page={{ orders.previous_page_number }}" class="btn btn-outline-secondary">Previous</a>
+                            {% endif %}
+                        
+                            <span class="mx-3">Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+                        
+                            {% if orders.has_next %}
+                                <a href="?page={{ orders.next_page_number }}" class="btn btn-outline-secondary">Next</a>
+                                <a href="?page={{ orders.paginator.num_pages }}" class="btn btn-outline-secondary">Last</a>
+                            {% endif %}
+                        </div>
+                        
+                        
+                        <!-- Pagination Controls -->
+                        <div class="pagination mt-3">
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination justify-content-center">
+                                    {% if orders.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ orders.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% for page_num in orders.paginator.page_range %}
+                                    <li class="page-item {% if orders.number == page_num %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                    </li>
+                                    {% endfor %}
+                                    {% if orders.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ orders.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        
+                    </div>
+                    <!-- End Dashboard -->
+                    <!-- End Dashboard -->
+
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+                            <use xlink:href="#exclamation-triangle-fill" />
+                        </svg>
+                        <div>{{ message }}</div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                </div>
+                <!-- End Tab panes -->
+            </div>
+        </div>
+        <!--End Main Content-->
+    </div>
+    <!--End Container-->
+</div>
+<!--End Body Container-->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// No additional scripts needed as Razorpay was removed
+</script>
+{% endblock %}

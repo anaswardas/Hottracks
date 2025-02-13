@@ -1,0 +1,44 @@
+HTTrack3.49-2+htsswf+htsjava launched on Tue, 21 May 2024 21:02:13 at http://3.37.186.116/index.html +*src="{% static "{% static '\1' %}" +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar
+src="{% static "{% static '\1' %}"
+(winhttrack -qwC2%Ps2u1%s%uN0%I0p3DaK0H0%kf2A25000%f#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" http://3.37.186.116/index.html -O1 "C:\Users\alway\OneDrive\Desktop\ecomAllPage" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar )
+
+
+
+Information, Warnings and Errors reported for this mirror:
+
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+src="{% static "{% static '\1' %}"
+	such as username/password authentication for websites mirrored in this projsrc="{% static "{% static '\1' %}"
+
+	do not share these files/folders if you want these information to remain private
+
+
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/privacy-policy.html (from 3.37.186.116/index.html)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/assets/images/snow-1.png (from 3.37.186.116/assets/css/style.css)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/assets/images/snow-2.png (from 3.37.186.116/assets/css/style.css)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/product-layout-3.html (from 3.37.186.116/index-demo3.html)
+
+21:09:57	Warning: 	Retry after error -4 (Incorrect length (325791 Bytes, 497651 expected)) at link 3.37.186.116/assets/video/video-placeholder.mp4 (from 3.37.186.116/index-demo6.html)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/+46647749940 (from 3.37.186.116/index-demo14.html)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/pro-quickshop2 (from 3.37.186.116/index-demo25.html)
+
+21:09:57	Error: 	"Not Found" (404) at link 3.37.186.116/compare.html (from 3.37.186.116/shop-left-sidebar.html)
+
+21:09:57	Warning: 	Retry after error -4 (Incorrect length (290209 Bytes, 497651 expected)) at link 3.37.186.116/assets/images/products/video/video-placeholder.mp4 (from 3.37.186.116/product-grouped.html)
+
+21:09:57	Warning: 	Retry after error -4 (Incorrect length (255221 Bytes, 402303 expected)) at link 3.37.186.116/assets/js/vendor/tinymce.min.js (from 3.37.186.116/vendor-uploads.html)
+
+21:10:47	Error: 	"Not Found" (404) at link 3.37.186.116/admin (from 3.37.186.116/coming-soon.html)
+
+
+
+HTTrack Website Copier/3.49-2 mirror complete in 8 minutes 35 seconds : 497 links scanned, 485 files written (29368328 bytes overall) [29522333 bytes received at 57324 bytes/sec], 9.3 requests per connection
+
+(8 errors, 3 warnings, 0 messages)
+

@@ -1,0 +1,139 @@
+
+{% extends "user/user_base.html" %}
+
+{% block title %} Wishlist {% endblock %}
+{% load static %}
+
+{% block extra_styles %}
+
+
+{% endblock %}
+
+{% block nav_links %}
+
+{% endblock %}
+
+
+{% block content %}  
+
+
+
+
+            <!--Body Container-->
+            <div id="page-content">   
+                <!--Collection Banner-->
+                
+                <div class="collection-header">
+                    <div class="collection-hero">
+                        <div class="collection-hero__image"></div>
+                        <div class="collection-hero__title-wrapper container">
+                            <h1 class="collection-hero__title">My Wishlist</h1>
+                            <div class="breadcrumbs text-uppercase mt-1 mt-lg-2"><a href="{% url 'wishlist' %}" title="Back to the home page">Home</a><span>|</span><span class="fw-bold"> Wishlist</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!--End Collection Banner-->
+
+                {% if wishlist_products %}
+
+                <!--Main Content-->
+                <div class="container">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-danger d-flex align-items-center" role="alert">
+                        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:">
+                            <use xlink:href="#exclamation-triangle-fill"/>
+                        </svg>
+                        <div>
+                            {{ message }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    <!--Wishlist-->
+                    <form action="#" method="post">
+                        <div class="wishlist-table table-content text-nowrap table-responsive py-2">
+                            <table class="table table-bordered align-middle">
+                                <thead class="bg-light thead-bg">
+                                    <tr>
+                                        <th class="product-name text-center alt-font">Remove</th>
+                                        <th class="product-price text-center alt-font">Images</th>
+                                        <th class="product-name alt-font">Product</th>
+                                        <th class="product-price text-center alt-font">Unit Price</th>
+                                        <th class="stock-status text-center alt-font">Stock Status</th>
+                                        <th class="product-subtotal text-center alt-font">Add to Cart</th>
+                                    </tr>
+                                </thead>
+                                    <tbody>
+                                        {% for product in wishlist_products %}
+                                        <tr>
+                                            <td class="product-remove text-center"><a href="{% url 'remove_from_wishlist' product.product.id %}" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove"><i class="icon icon an an-times-l"></i></a></td>
+                                            <td class="product-thumbnail text-center">
+                                                <img src="{{product.product.image1.url}}" width="100" alt="" title="">
+                                            </td>
+                                            <td class="product-name"><h6 class="mb-0"><a href="product-layout1.html">{{product.product.name}}</a></h6></td>
+                                            {% if product.product.is_offer_applied %}
+                                            <td class="product-price text-center"><span class="amount fw-500">&#8377; {{product.product.discounted_price}}</span></td>
+                                            {% else %}
+                                            <td class="product-price text-center"><span class="amount fw-500">&#8377; {{product.product.price}}</span></td>
+                                            {% endif %}
+                                            {% if product.product.stock_count > 10 %}
+                                            
+                                            <td class="stock text-center"><span class="text-in-stock">in stock</span></td>
+
+                                            {% elif product.product.stock_count > 0 and  product.product.stock_count <= 10 %}
+                                            
+                                            <td class="stock text-center"><span class="text-out-stock"> {{product.product.stock_count}} stock left !</span></td>
+                                            {% else %}
+                                           
+                                            <td class="stock text-center"><span class="text-out-stock">out of stock</span></td>
+
+                                            {% endif %}
+                                            <td class="product-subtotal text-center"><a href="{% url 'wishlist_to_cart' product.product.id %}" class="btn btn-small rounded-1 text-nowrap">Add To Cart</a></td>
+                                        </tr>
+                                        
+                                        {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form> 
+                    <!--End Wishlist-->
+                </div>
+                <!--End Main Content-->
+                {% else %}
+
+                <!--Container-->
+                <div class="container">
+                    <!--Category Empty-->
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-12 text-center pt-5 pb-5">
+                            <p><img src="{% static 'assets/images/sad-icon.png' %}" alt="" /></p>
+                            <h2 class="mt-4"><strong>SORRY,</strong> Your wishlist is empty!</h2>
+                            <p class="mb-3 pb-1">You have no items in your wishlist.</p>
+                            <p><a href="{% url 'user_home' %}" class="btn btn-outline-primary rounded mb-2 me-2">GO Back</a><a href="{% url 'user_product' %}" class="btn rounded mb-2 text-capitalize">Continue shopping</a></p>
+                        </div>
+                    </div>
+                    <!--End Category Empty-->
+                </div>
+                <!--End Container-->
+             {% endif %}
+            </div>
+            <!--End Body Container-->
+
+
+
+
+        {% endblock %}
+
+         
+    {% block scripts %}
+          
+                            
+{% endblock %}
+
+
+
+
+
+
+          

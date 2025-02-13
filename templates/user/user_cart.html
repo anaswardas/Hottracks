@@ -1,0 +1,257 @@
+{% extends 'user/user_base.html' %}
+{% block title %}Cart - Hot Tracks{% endblock %}
+{% load static %}
+{% block content %}
+<div id="page-content">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} d-flex align-items-center" role="alert">
+        <div>{{ message }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-12 main-col">
+                {% if is_empty %}
+                    <div class="text-center my-5">
+                        <h3>{{ message }}</h3>
+                        <a href="{% url 'user_product' %}" class="btn btn-primary mt-3">Continue Shopping</a>
+                    </div>
+                {% else %}
+                <form id="cart-form" method="post" class="cart style1">
+                    {% csrf_token %}
+                    <table>
+                        <thead class="cart__row cart__header small--hide">
+                            <tr>
+                                <th class="action">&nbsp;</th>
+                                <th colspan="2" class="text-start">Product</th>
+                                <th class="text-center">Price</th>
+                                <th class="text-center">Quantity</th>
+                                <th class="text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr class="cart__row border-bottom line1 cart-flex border-top" data-product-id="{{ item.product.id }}">
+                                <td class="cart-delete text-center small--hide">
+                                    <a href="javascript:void(0);" onclick="deleteFromCart('{{ item.product.id }}')" class="btn btn--secondary cart__remove remove-icon position-static">
+                                        <i class="icon an an-times-r"></i>
+                                    </a>
+                                </td>
+                                <td class="cart__image-wrapper cart-flex-item">
+                                    <img class="cart__image" src="{{ item.product.image1.url }}" alt="{{ item.product.name }}" width="80" />
+                                </td>
+                                <td class="cart__meta small--text-left cart-flex-item">
+                                    <div class="list-view-item__title">{{ item.product.name }}</div>
+                                </td>
+                                <td class="cart__price-wrapper cart-flex-item text-center small--hide">
+                                    {% if item.product.is_offer_applied %}
+                                        <del class="text-danger">{{ item.product.price|floatformat:2 }}₹</del>
+                                        <span class="money text-success">{{ item.discounted_price|floatformat:2 }}₹</span>
+                                        <span class="text-warning">(-{{ item.product.discount_percentage }}% OFF)</span>
+                                    {% else %}
+                                        <span class="money">{{ item.product.price|floatformat:2 }}₹</span>
+                                    {% endif %}
+                                </td>
+                                <td class="cart__update-wrapper cart-flex-item text-end text-md-center">
+                                    <div class="cart__qty d-flex justify-content-end justify-content-md-center">
+                                        <div class="qtyField">
+                                            <button type="button" class="qtyBtn minus" 
+                                                    onclick="updateQuantity('{{ item.product.id }}', -1)"
+                                                    {% if item.quantity <= 1 %}disabled{% endif %}>
+                                                <i class="icon an an-minus-r"></i>
+                                            </button>
+                                            <input class="cart__qty-input qty" type="number" 
+                                                   name="quantities[{{ item.product.id }}]" 
+                                                   value="{{ item.quantity }}" 
+                                                   min="1" 
+                                                   max="{% firstof item.product.stock_count 5 %}"
+                                                   id="qty-{{ item.product.id }}"
+                                                   readonly
+                                            >
+                                            <button type="button" class="qtyBtn plus" 
+                                                    onclick="updateQuantity('{{ item.product.id }}', 1)"
+                                                    {% if item.quantity >= 5 or item.quantity >= item.product.stock_count %}disabled{% endif %}>
+                                                <i class="icon an an-plus-r"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="cart-price cart-flex-item text-center small--hide">
+                                    <span class="money" id="subtotal-{{ item.product.id }}">{{ item.subtotal|floatformat:2 }}₹</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    <div class="cart-summary mt-4" style="width: 50%; margin: 0 auto;">
+                        <table class="table">
+                            <tr>
+                                <td>Subtotal:</td>
+                                <td class="text-end" id="cart-subtotal">{{ cart_subtotal|floatformat:2 }}₹</td>
+                            </tr>
+                            <!-- <tr>
+                                <td>Discount Applied:</td>
+                                <td class="text-end text-danger" id="cart-discount">-{{ cart_discount|floatformat:2 }}₹</td>
+                            </tr> -->
+                            <tr>
+                                <td>Tax (0.1%):</td>
+                                <td class="text-end" id="cart-tax">{{ cart_tax|floatformat:2 }}₹</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total:</strong></td>
+                                <td class="text-end"><strong id="cart-total">{{ cart_total|floatformat:2 }}₹</strong></td>
+                            </tr>
+                        </table>
+                        <div class="text-end">
+                            <a href="{% url 'checkout_view' %}" class="btn btn-primary">Place Order</a>
+                        </div>
+                    </div>
+                </form>
+                
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+function updateCartSummary(data) {
+    document.getElementById('cart-subtotal').textContent = `${data.subtotal.toFixed(2)}₹`;
+    document.getElementById('cart-tax').textContent = `${data.tax.toFixed(2)}₹`;
+    document.getElementById('cart-total').textContent = `${data.total.toFixed(2)}₹`;
+}
+
+function updateQuantity(productId, delta) {
+    const qtyInput = document.getElementById(`qty-${productId}`);
+    const currentQty = parseInt(qtyInput.value);
+    const newQty = currentQty + delta;
+    const maxStock = parseInt(qtyInput.getAttribute('max'));
+    
+    if (newQty < 1 || newQty > Math.min(maxStock, 5)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Quantity',
+            text: `Quantity must be between 1 and ${Math.min(maxStock, 5)}`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+        return;
+    }
+    
+    fetch("{% url 'update_cart_item' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            'productId': productId,
+            'quantity': newQty
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.error,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } else {
+            qtyInput.value = newQty;
+            document.getElementById(`subtotal-${productId}`).textContent = `${data.subtotal.toFixed(2)}₹`;
+            updateCartSummary(data.cart_summary);
+            
+            // Update button states
+            const row = qtyInput.closest('tr');
+            const minusBtn = row.querySelector('.minus');
+            const plusBtn = row.querySelector('.plus');
+            
+            minusBtn.disabled = newQty <= 1;
+            plusBtn.disabled = newQty >= Math.min(maxStock, 5);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred. Please try again.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    });
+}
+
+function deleteFromCart(productId) {
+    Swal.fire({
+        title: 'Remove Item?',
+        text: 'Are you sure you want to remove this item from your cart?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, remove it',
+        cancelButtonText: 'No, keep it'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/cart/delete_from_cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+                    if (row) {
+                        row.remove();
+                        updateCartSummary(data);
+                        
+                        // Check if cart is empty after deletion
+                        const remainingItems = document.querySelectorAll('tr[data-product-id]');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // Reload to show empty cart message
+                        }
+                    }
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Item Removed',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred. Please try again.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,207 @@
+{% extends "admin_page/admin_base.html" %}
+{% load static %}
+{% block title %}Add Offer{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .product-item {
+        padding: 10px;
+        border: 1px solid #ddd;
+        margin: 5px 0;
+        border-radius: 4px;
+    }
+    .product-item:hover {
+        background-color: #f8f9fa;
+    }
+    .product-details {
+        margin-left: 10px;
+        display: inline-block;
+    }
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    .product-list, .category-list {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Add New Offer</h4>
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="card-body">
+                    <form id="addOfferForm" action="{% url 'add_offer' %}" method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="name">Offer Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="end_date">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="discount_percentage">Discount Percentage</label>
+                            <input type="number" step="0.01" class="form-control" id="discount_percentage" name="discount_percentage" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="offerType">Offer Type</label>
+                            <select class="form-control" id="offerType" name="offer_type" required>
+                                <option value="">Select Offer Type</option>
+                                <option value="product">Product</option>
+                                <option value="category">Category</option>
+                            </select>
+                        </div>
+
+                        <!-- Product Selection -->
+                        <div class="form-group" id="productSelection" style="display: none;">
+                            <label>Select Products</label>
+                            <div class="product-list">
+                                {% for product in products %}
+                                    {% if product.is_in_stock and not product.is_offer_applied %}
+                                    <div class="product-item">
+                                        <input type="checkbox" name="applicable_products[]" value="{{ product.id }}" id="product_{{ product.id }}">
+                                        <div class="product-details">
+                                            <label for="product_{{ product.id }}">
+                                                <strong>{{ product.name }}</strong><br>
+                                                <small>Price: ₹{{ product.price }} | Stock: {{ product.stock_count }}</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Category Selection -->
+                        <div class="form-group" id="categorySelection" style="display: none;">
+                            <label>Select Categories</label>
+                            <div class="category-list">
+                                {% for category in categories %}
+                                    {% if category.is_active %}
+                                    <div class="product-item">
+                                        <input type="checkbox" name="applicable_categories[]" value="{{ category.id }}" id="category_{{ category.id }}">
+                                        <div class="product-details">
+                                            <label for="category_{{ category.id }}">
+                                                <strong>{{ category.name }}</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const offerType = document.getElementById("offerType");
+        const productSelection = document.getElementById("productSelection");
+        const categorySelection = document.getElementById("categorySelection");
+
+        // Show/hide product or category selection
+        function toggleSelection() {
+            if (offerType.value === "product") {
+                productSelection.style.display = "block";
+                categorySelection.style.display = "none";
+            } else if (offerType.value === "category") {
+                categorySelection.style.display = "block";
+                productSelection.style.display = "none";
+            } else {
+                productSelection.style.display = "none";
+                categorySelection.style.display = "none";
+            }
+        }
+
+        offerType.addEventListener("change", toggleSelection);
+        toggleSelection(); // Run on page load
+
+        // Form validation before submission
+        document.getElementById("addOfferForm").addEventListener("submit", function (e) {
+            let isValid = true;
+
+            if (offerType.value === "product") {
+                const selectedProducts = document.querySelectorAll('input[name="applicable_products[]"]:checked');
+                if (selectedProducts.length === 0) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Oops...",
+                        text: "Please select at least one product!",
+                    });
+                    isValid = false;
+                }
+            } else if (offerType.value === "category") {
+                const selectedCategories = document.querySelectorAll('input[name="applicable_categories[]"]:checked');
+                if (selectedCategories.length === 0) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Oops...",
+                        text: "Please select at least one category!",
+                    });
+                    isValid = false;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // Date validation
+        function validateDates() {
+            const startDate = new Date(document.getElementById("start_date").value);
+            const endDate = new Date(document.getElementById("end_date").value);
+
+            if (startDate && endDate && startDate > endDate) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Invalid Date!",
+                    text: "End date must be after the start date!",
+                });
+                this.value = "";
+            }
+        }
+
+        document.getElementById("start_date").addEventListener("change", validateDates);
+        document.getElementById("end_date").addEventListener("change", validateDates);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,210 @@
+{% extends "user/user_base.html" %}
+
+{% block title %} User login{% endblock %}
+{% load static %}
+
+{% block extra_styles %}
+
+    <style>
+        .wallet-balance-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+    
+        .display-4 {
+            font-size: 2.5rem;
+        }
+    
+        .text-primary {
+            color: #070707 !important;
+        }
+    
+        .text-success {
+            color: #28a745 !important;
+        }
+    </style>
+
+
+{% endblock %}
+
+{% block nav_links %}
+
+{% endblock %}
+
+
+{% block content %}  
+
+            <!--Body Container-->
+            <div id="page-content">
+                <!--Collection Banner-->
+                <div class="collection-header">
+                    <div class="collection-hero">
+                        <div class="collection-hero__image"></div>
+                        <div class="collection-hero__title-wrapper container">
+                            <h1 class="collection-hero__title">My Account</h1>
+                            <div class="breadcrumbs text-uppercase mt-1 mt-lg-2"><a href="index.html" title="Back to the home page">Home</a><span>|</span><span class="fw-bold">My Account</span></div>
+                        </div>
+                    </div>
+                </div>
+                <!--End Collection Banner-->
+
+                <!--Container-->
+                <div class="container pt-2">
+                    <!--Main Content-->
+                    <div class="dashboard-upper-info">
+                        <div class="row align-items-center g-0">
+                            <div class="col-xl-3 col-lg-3 col-sm-6">
+                                <div class="d-single-info">
+                                    <p class="user-name">Hello <span class="fw-600">optimal</span></p>
+                                    <p>(not optimal? <a class="link-underline fw-600" href="{% url 'user_logout' %}">Log Out</a>)</p>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-lg-4 col-sm-6">
+                                <div class="d-single-info">
+                                    <p>Need Assistance? Customer service at.</p>
+                                    <p><a href="mailto:admin@example.com">hottracks@example.com</a></p>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-lg-3 col-sm-6">
+                                <div class="d-single-info">
+                                    <p>E-mail them at </p>
+                                    <p><a href="mailto:support@example.com">{{user.email}}</a></p>
+                                </div>
+                            </div>
+                            <div class="col-xl-2 col-lg-2 col-sm-6">
+                                <div class="d-single-info text-lg-center">
+                                    <a class="link-underline fw-600 view-cart" href=""><i class="icon an an-sq-bag me-2"></i>View Cart</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 mb-lg-5 pb-lg-5">
+                        <div class="col-xl-3 col-lg-2 col-md-12 mb-4 mb-lg-0">
+                            <!-- Nav tabs -->
+                            <ul class="nav flex-column bg-light h-100 dashboard-list" role="tablist">
+                                <ul class="nav flex-column bg-light h-100 dashboard-list" role="tablist">
+                                    <!-- <li><a class="nav-link "  href="{% url 'profile_dashboard">Dashboard</a></li> -->
+                                    <!-- <li><a class="nav-link "  href="{% url 'order' user.id ">Orders</a></li> -->
+                                    <li><a class="nav-link"  href="{% url 'wallet_view' %}  ">Wallet</a></li>                            
+                                    <li><a class="nav-link active"  href="{% url 'view_address'%}">Addresses</a></li>
+                                    <li><a class="nav-link "  href="{% url 'user_account'%} ">Account details</a></li>
+                                    <li><a class="nav-link"  href="{% url 'change_password'%} ">Change Password</a></li>
+                                    <li><a class="nav-link" href="{% url 'user_logout' %}">logout</a></li>
+                                </ul>
+                            </ul>
+                            <!-- End Nav tabs -->
+                        </div>
+
+                        <div class="col-xl-9 col-lg-10 col-md-12">
+                            <!-- Tab panes -->
+                            <div class="tab-content dashboard-content">
+                              
+
+
+                                <!-- wallet amount -->
+                                <div id="orderstracking" class="tab-pane fade active show">
+                                    <div class="card shadow-sm">
+                                        <div class="card-body">
+                                            <h3 class="card-title text-primary">{{ user.username }}'s Wallet Balance</h3>
+                                            <p class="mb-3 text-muted">You can pay using your wallet balance</p>
+                                            <div class="row align-items-center">
+                                                <div class="col-md-6 col-lg-5">
+                                                    <div class="wallet-balance-box p-3 rounded border">
+                                                        <label for="orderId" class="d-none">Wallet Balance <span class="required-f">*</span></label>
+                                                        <input name="orderId" id="orderId" type="text" value="{{ wallet.balance }}" class="form-control-plaintext text-success display-4 font-weight-bold" readonly>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card mt-4 shadow-sm">
+                                    <div class="card-body">
+                                        <h3 class="card-title text-primary">Transaction History</h3>
+                                        
+                                        <!-- Approved Transactions -->
+                                        <h4 class="mt-4">Approved Transactions</h4>
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for transaction in transactions %}
+                                                <tr>
+                                                    <td>{{ transaction.timestamp }}</td>
+                                                    <td>{{ transaction.get_transaction_type_display }}</td>
+                                                    <td class="{% if transaction.transaction_type == 'CANCELLED_ORDER' %}text-success{% elif transaction.transaction_type == 'RETURNED_ORDER' %}text-danger{% endif %}">
+                                                        {% if transaction.transaction_type == 'CANCELLED_ORDER' %}+{% elif transaction.transaction_type == 'RETURNED_ORDER' %}-{% endif %}
+                                                        {{ transaction.amount }}
+                                                    </td>
+                                                    
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">No approved transactions found.</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                
+                                        <!-- Pending Transactions -->
+                                        <!-- <h4 class="mt-4">Pending Transactions</h4>
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Amount</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for transaction in pending_transactions %}
+                                                <tr>
+                                                    <td>{{ transaction.date|date:"d M Y, H:i" }}</td>
+                                                    <td>{{ transaction.get_transaction_type_display }}</td>
+                                                    <td class="{% if transaction.transaction_type == 'credit' %}text-success{% else %}text-danger{% endif %}">
+                                                        {% if transaction.transaction_type == 'credit' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                                                    </td>
+                                                    <td class="text-warning">Pending</td>
+                                                </tr>
+                                                {% empty %}
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">No pending transactions found.</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table> -->
+                                    </div>
+                                </div>
+                                
+                                     
+                                
+                                </div>
+                                <!-- End Orders tracking -->
+                                
+                  
+                            </div>
+                            <!-- End Tab panes -->
+                        </div>
+                    </div>
+                    <!--End Main Content-->
+                </div>
+                <!--End Container-->
+            </div>
+            <!--End Body Container-->
+
+            {% endblock %}
+
+         
+            {% block scripts %}
+            
+                            
+            {% endblock %}

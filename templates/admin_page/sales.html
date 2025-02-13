@@ -1,0 +1,204 @@
+{% extends "admin_page/admin_base.html" %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Orders</h6>
+                        <h4 class="mb-0">{{ total_order_count }}</h4>
+                    </div>
+                    <div class="icon-shape bg-primary text-white rounded-circle p-3">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Sales</h6>
+                        <h4 class="mb-0">₹{{ total_sales_amount|floatformat:2 }}</h4>
+                    </div>
+                    <div class="icon-shape bg-success text-white rounded-circle p-3">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Discounts</h6>
+                        <h4 class="mb-0">₹{{ total_discount_amount|floatformat:2 }}</h4>
+                    </div>
+                    <div class="icon-shape bg-warning text-white rounded-circle p-3">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Net Earnings</h6>
+                        <h4 class="mb-0">₹{{ earnings|floatformat:2 }}</h4>
+                    </div>
+                    <div class="icon-shape bg-info text-white rounded-circle p-3">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Form -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="reportType" class="form-label">Report Type</label>
+                <select id="reportType" name="report_type" class="form-select" onchange="showDateInputs()">
+                    <option value="day" {% if request.GET.report_type == 'day' %}selected{% endif %}>Daily</option>
+                    <option value="week" {% if request.GET.report_type == 'week' %}selected{% endif %}>Weekly</option>
+                    <option value="month" {% if request.GET.report_type == 'month' %}selected{% endif %}>Monthly</option>
+                    <option value="year" {% if request.GET.report_type == 'year' %}selected{% endif %}>Yearly</option>
+                    <option value="custom" {% if request.GET.report_type == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3" id="startDateContainer" style="display: none;">
+                <label for="startDate" class="form-label">Start Date</label>
+                <input type="date" id="startDate" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            
+            <div class="col-md-3" id="endDateContainer" style="display: none;">
+                <label for="endDate" class="form-label">End Date</label>
+                <input type="date" id="endDate" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter me-2"></i>Apply Filter
+                    </button>
+                    <!-- <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'export_sales_report' 'xlsx' %?{{ request.GET.urlencode }}">Excel</a></li>
+                            <li><a class="dropdown-item" href="{% url 'export_sales_report' 'pdf' %?{{ request.GET.urlencode }}">PDF</a></li>
+                        </ul>
+                    </div> -->
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Sales Data Table -->
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="salesTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Total Amount</th>
+                        <th>Discount</th>
+                        <th>Final Amount</th>
+                        <th>Payment Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order_data in orders %}
+                        {% for product in order_data.products %}
+                            <tr>
+                                <td>{{ order_data.order.orderid }}</td>
+                                <td>{{ order_data.order.created_at|date:"Y-m-d" }}</td>
+                                <td>{{ order_data.order.user.username }}</td>
+                                <td>{{ product.product.name }}</td>
+                                <td>{{ product.quantity }}</td>
+                                <td>₹{{ product.product_total_amount|floatformat:2 }}</td>
+                                <td>₹{{ product.product_discount_amount|floatformat:2 }}</td>
+                                <td>₹{{ product.product_final_total|floatformat:2 }}</td>
+                                <td>{{ order_data.order.payment.payment_method }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center">No orders found for the selected period</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <th colspan="5">Total</th>
+                        <th>₹{{ total_sales_amount|floatformat:2 }}</th>
+                        <th>₹{{ total_discount_amount|floatformat:2 }}</th>
+                        <th>₹{{ total_final_total|floatformat:2 }}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    function showDateInputs() {
+        const reportType = document.getElementById('reportType').value;
+        const startDateContainer = document.getElementById('startDateContainer');
+        const endDateContainer = document.getElementById('endDateContainer');
+        
+        if (reportType === 'custom') {
+            startDateContainer.style.display = 'block';
+            endDateContainer.style.display = 'block';
+        } else {
+            startDateContainer.style.display = 'none';
+            endDateContainer.style.display = 'none';
+        }
+    }
+
+    // Initialize DataTable
+    $(document).ready(function() {
+        $('#salesTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+            pageLength: 25,
+            order: [[1, 'desc']], // Sort by date column descending
+            responsive: true
+        });
+
+        // Initialize date inputs if custom range is selected
+        showDateInputs();
+    });
+</script>
+{% endblock %}

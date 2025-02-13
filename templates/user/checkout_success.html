@@ -1,0 +1,16 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Checkout Success{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="alert alert-success p-4">
+        <h2 class="mb-3"><span style="font-size: 2em; color: #28a745;">🎉</span> Order Confirmed!</h2>
+        <p>Your order has been successfully placed.</p>
+    </div>
+    <div class="d-flex justify-content-center">
+        <a href="{% url 'user_home' %}" class="btn btn-primary me-2">Go to Home</a>
+        <a href="{% url 'user_account' %}" class="btn btn-secondary">Go to Account</a>
+    </div>
+</div>
+{% endblock %}
