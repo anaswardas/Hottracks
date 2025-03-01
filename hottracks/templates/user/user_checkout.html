@@ -164,9 +164,8 @@
                 
                 <td>
                     {% if item.product.is_offer_applied %}
-                        <del class="text-danger">{{ item.product.original_price | floatformat:2 }}₹</del>
+                        <del class="text-danger">{{ item.product.price | floatformat:2 }}₹</del>
                         <span class="money text-success">{{ item.discounted_price | floatformat:2 }}₹</span>
-                        <span class="text-warning">(-{{ item.product.discount_percentage }}% OFF)</span>
                     {% else %}
                         <span class="money">{{ item.product.price | floatformat:2 }}₹</span>
                     {% endif %}
@@ -176,7 +175,6 @@
 
                 <td>
                     {% if item.product.is_offer_applied %}
-                        <del class="text-danger">{{ item.original_subtotal | floatformat:2 }}₹</del>
                         <span class="money text-success">{{ item.subtotal | floatformat:2 }}₹</span>
                     {% else %}
                         <span class="money">{{ item.subtotal | floatformat:2 }}₹</span>
@@ -190,14 +188,7 @@
                 <td colspan="4" class="text-end fw-bolder">Subtotal</td>
                 <td id="checkout-subtotal">{{ cart_subtotal | floatformat:2 }}₹</td>
             </tr>
-            
-            <tr id="discount_row" {% if not applied_coupon and not applied_offer %}style="display: none;"{% endif %}>
-                <td colspan="4" class="text-end fw-bolder text-success">Discount</td>
-                <td class="text-success">-<span id="discount_amount">
-                    {{ discount_amount | floatformat:2 }}
-                </span>₹</td>
-            </tr>
-
+        
             <tr>
                 <td colspan="4" class="text-end fw-bolder">Tax (0.1%)</td>
                 <td id="checkout-tax">{{ cart_tax | floatformat:2 }}₹</td>

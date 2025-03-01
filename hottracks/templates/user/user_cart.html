@@ -35,17 +35,24 @@
                         <tbody>
                             {% for item in cart_items %}
                             <tr class="cart__row border-bottom line1 cart-flex border-top" data-product-id="{{ item.product.id }}">
+                                <!-- Delete button -->
                                 <td class="cart-delete text-center small--hide">
                                     <a href="javascript:void(0);" onclick="deleteFromCart('{{ item.product.id }}')" class="btn btn--secondary cart__remove remove-icon position-static">
                                         <i class="icon an an-times-r"></i>
                                     </a>
                                 </td>
+                        
+                                <!-- Product Image -->
                                 <td class="cart__image-wrapper cart-flex-item">
                                     <img class="cart__image" src="{{ item.product.image1.url }}" alt="{{ item.product.name }}" width="80" />
                                 </td>
+                        
+                                <!-- Product Name -->
                                 <td class="cart__meta small--text-left cart-flex-item">
                                     <div class="list-view-item__title">{{ item.product.name }}</div>
                                 </td>
+                        
+                                <!-- Price Display (With Discount Calculation) -->
                                 <td class="cart__price-wrapper cart-flex-item text-center small--hide">
                                     {% if item.product.is_offer_applied %}
                                         <del class="text-danger">{{ item.product.price|floatformat:2 }}₹</del>
@@ -55,6 +62,8 @@
                                         <span class="money">{{ item.product.price|floatformat:2 }}₹</span>
                                     {% endif %}
                                 </td>
+                        
+                                <!-- Quantity Update -->
                                 <td class="cart__update-wrapper cart-flex-item text-end text-md-center">
                                     <div class="cart__qty d-flex justify-content-end justify-content-md-center">
                                         <div class="qtyField">
@@ -79,12 +88,24 @@
                                         </div>
                                     </div>
                                 </td>
+                        
+                                <!-- Corrected Subtotal Calculation -->
                                 <td class="cart-price cart-flex-item text-center small--hide">
-                                    <span class="money" id="subtotal-{{ item.product.id }}">{{ item.subtotal|floatformat:2 }}₹</span>
+                                    {% if item.product.is_offer_applied %}
+                                        <span class="money" id="subtotal-{{ item.product.id }}">
+                                            ₹{{ item.discounted_price|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="money" id="subtotal-{{ item.product.id }}">
+                                            ₹{{ item.product.price|floatformat:2 }} 
+                                        </span>
+                                    {% endif %}
                                 </td>
+                                
                             </tr>
                             {% endfor %}
                         </tbody>
+                        
                     </table>
                     
                     <div class="cart-summary mt-4" style="width: 50%; margin: 0 auto;">
@@ -121,11 +142,14 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-function updateCartSummary(data) {
-    document.getElementById('cart-subtotal').textContent = `${data.subtotal.toFixed(2)}₹`;
-    document.getElementById('cart-tax').textContent = `${data.tax.toFixed(2)}₹`;
-    document.getElementById('cart-total').textContent = `${data.total.toFixed(2)}₹`;
-}
+    function updateCartSummary(data) {
+        console.log("Updating Cart Summary with:", data);  // Debugging
+    
+        document.getElementById('cart-subtotal').textContent = `${data.subtotal.toFixed(2)}₹`;
+        document.getElementById('cart-tax').textContent = `${data.tax.toFixed(2)}₹`;
+        document.getElementById('cart-total').textContent = `${data.total.toFixed(2)}₹`;
+    }
+    
 
 function updateQuantity(productId, delta) {
     const qtyInput = document.getElementById(`qty-${productId}`);

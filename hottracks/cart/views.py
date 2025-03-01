@@ -92,56 +92,52 @@ def add_to_cart(request, product_id):
 
 
 
+from decimal import Decimal
 
 def user_cart(request):
     try:
         cart = Cart.objects.get(user=request.user, is_active=True)
         cart_items = cart.items.all()
-        
-        if not cart_items.exists():
-            return render(request, 'user/user_cart.html', {
-                'message': 'Your cart is empty.',
-                'is_empty': True
-            })
-            
-        cart_subtotal = 0
-        cart_discount = 0
+
+        cart_subtotal = Decimal('0.00')  
+        cart_discount = Decimal('0.00')
 
         for item in cart_items:
             product = item.product
-            original_price = product.price
-
-            if product.is_offer_applied and product.discount_percentage:
-                discount_amount = (product.discount_percentage / 100) * original_price
-                discounted_price = original_price - discount_amount
-            else:
-                discounted_price = original_price
+            original_price = product.price  
             
+            if product.is_offer_applied and product.discount_percentage:
+                discount_amount = (Decimal(product.discount_percentage) / Decimal('100.00')) * original_price
+                discounted_price = original_price - discount_amount 
+            else:
+                discounted_price = original_price  
+                discount_amount = Decimal('0.00')
+
+            cart_subtotal += discounted_price * item.quantity  
+            cart_discount += discount_amount * item.quantity if product.is_offer_applied else Decimal('0.00')
+
             item.discounted_price = discounted_price  
-            item.save()
-
-            cart_subtotal += discounted_price * item.quantity
-            cart_discount += discount_amount * item.quantity if product.is_offer_applied else 0
-
-        cart_tax = cart.calculate_tax()
-        cart_total = cart_subtotal + cart_tax
+            
+        cart_tax = cart_subtotal * Decimal('0.01')  
+        cart_total = cart_subtotal + cart_tax  
+        
 
         context = {
             'cart': cart,
             'cart_items': cart_items,
             'cart_subtotal': cart_subtotal,
-            'cart_tax': cart_tax,
             'cart_discount': cart_discount,  
+            'cart_tax': cart_tax,
             'cart_total': cart_total,
             'is_empty': False
         }
-        
+
     except Cart.DoesNotExist:
         context = {
             'message': 'Your cart is empty.',
             'is_empty': True
         }
-        
+
     return render(request, 'user/user_cart.html', context)
 
 
@@ -503,19 +499,26 @@ def update_order(request, order_id):
 
 def calculate_product_totals(product, applied_coupon=None):
     base_price = product.price
-    discount_amount = Decimal('0.00')
+    offer_discount_amount = Decimal('0.00')
+    coupon_discount_amount = Decimal('0.00')
 
+    # Check if the product has an active offer
+    if hasattr(product, 'is_offer_applied') and product.is_offer_applied and product.discount_percentage:
+        offer_discount_amount = (Decimal(product.discount_percentage) / 100) * base_price
+        base_price -= offer_discount_amount  # Apply offer discount first
 
+    # If a coupon is applied
     if applied_coupon:
-        discount_amount = (Decimal(applied_coupon.discount_percentage) / 100) * base_price
-        base_price -= discount_amount
+        coupon_discount_amount = (Decimal(applied_coupon.discount_percentage) / 100) * base_price
+        base_price -= coupon_discount_amount  # Apply coupon discount on the discounted price
 
-    tax_rate = Decimal('0.001')
+    # Calculate tax (modify if needed)
+    tax_rate = Decimal('0.01')
     tax_amount = base_price * tax_rate
     final_price = base_price + tax_amount
 
-    
-    return base_price, discount_amount, tax_amount, final_price
+    return base_price, offer_discount_amount, coupon_discount_amount, tax_amount, final_price
+
 
 
 
@@ -524,34 +527,60 @@ def order_details_view(request, order_id):
     order_products = OrderProduct.objects.filter(order=order)
 
     subtotal = Decimal('0.00')
-    total_discount = Decimal('0.00')
+    total_offer_discount = Decimal('0.00')
+    total_coupon_discount = Decimal('0.00')
     total_tax = Decimal('0.00')
     final_order_total = Decimal('0.00')
 
-
     for item in order_products:
-        base_price, discount_amount, tax_amount, final_price = calculate_product_totals(
-            item.product, applied_coupon=order.coupon
-        )
+        # Get original product price
+        original_price = Decimal(item.product.price)
 
+        # Calculate offer discount
+        offer_discount = Decimal('0.00')
+        if hasattr(item.product, 'discount_percentage') and item.product.discount_percentage:
+            offer_discount = (Decimal(item.product.discount_percentage) / 100) * original_price
+            discounted_price = original_price - offer_discount
+        else:
+            discounted_price = original_price
 
-        subtotal += base_price
-        total_discount += discount_amount
+        # Calculate coupon discount
+        coupon_discount = Decimal('0.00')
+        if order.coupon:
+            coupon_discount = (Decimal(order.coupon.discount_percentage) / 100) * discounted_price
+            discounted_price -= coupon_discount
+
+        # Calculate tax (1% tax example)
+        tax_rate = Decimal('0.01')
+        tax_amount = discounted_price * tax_rate
+        final_price = (discounted_price + tax_amount) * item.quantity
+
+        # Update totals
+        subtotal += original_price * item.quantity
+        total_offer_discount += offer_discount
+        total_coupon_discount += coupon_discount
         total_tax += tax_amount
         final_order_total += final_price
+
+        # ✅ Instead of unpacking, assign values separately
+        item.original_price = original_price
+        item.offer_discount = offer_discount
+        item.coupon_discount = coupon_discount
+        item.tax_amount = tax_amount
+        item.final_price = final_price
 
 
     context = {
         "order": order,
         "order_products": order_products,
         "subtotal": subtotal,
-        "discount": total_discount,  
+        "total_offer_discount": total_offer_discount,
+        "total_coupon_discount": total_coupon_discount,
         "total_tax": total_tax,
         "final_order_total": final_order_total,
     }
 
     return render(request, "user/order_details.html", context)
-
 
 
 

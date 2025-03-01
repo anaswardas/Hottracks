@@ -400,8 +400,29 @@ def checkout_view(request):
         return redirect('cart_view')
 
    
-    subtotal = cart.subtotal()
-    tax = cart.calculate_tax()
+    subtotal = Decimal('0.00')
+    discount_total = Decimal('0.00')
+    
+    for item in cart_items:
+        product = item.product
+        original_price = product.price 
+        
+        if product.is_offer_applied and product.discount_percentage :
+            discount_amount = (Decimal (product.discount_percentage) / Decimal('100.00')) * original_price
+            discounted_price = original_price - discount_amount
+        else:
+            discounted_price = original_price
+            discount_amount = Decimal('0.00')
+        
+        subtotal += discounted_price * item.quantity
+        if product.is_offer_applied :
+            discount_total += discount_amount * item.quantity
+            
+        item.discounted_price = discounted_price
+        item.original_subtotal = original_price * item.quantity
+        item.subtotal = discounted_price * item.quantity
+        
+    tax = subtotal * Decimal('0.01')
     total_price = subtotal + tax
 
     current_time = now()
