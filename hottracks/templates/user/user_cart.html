@@ -14,12 +14,24 @@
     <div class="container">
         <div class="row">
             <div class="col-12 col-sm-12 col-md-12 col-lg-12 main-col">
-                {% if is_empty %}
-                    <div class="text-center my-5">
-                        <h3>{{ message }}</h3>
-                        <a href="{% url 'user_product' %}" class="btn btn-primary mt-3">Continue Shopping</a>
-                    </div>
-                {% else %}
+                {% if not cart_items %}
+    <div class="container">
+        <!-- Empty Cart Message -->
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-12 col-lg-12 text-center pt-5 pb-5">
+                <p><img src="{% static 'assets/images/sad-icon.png' %}" alt="Empty Cart" /></p>
+                <h2 class="mt-4"><strong>SORRY,</strong> Your cart is empty!</h2>
+                <p class="mb-3 pb-1">You have no items in your cart.</p>
+                <p>
+                    <a href="{% url 'user_home' %}" class="btn btn-outline-primary rounded mb-2 me-2">GO Back</a>
+                    <a href="{% url 'user_product' %}" class="btn rounded mb-2 text-capitalize">Continue Shopping</a>
+                </p>
+            </div>
+        </div>
+        <!-- End Empty Cart Message -->
+    </div>
+{% else %}
+
                 <form id="cart-form" method="post" class="cart style1">
                     {% csrf_token %}
                     <table>
@@ -142,79 +154,106 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    function updateCartSummary(data) {
-        console.log("Updating Cart Summary with:", data);  // Debugging
+    document.addEventListener('DOMContentLoaded', function() {
+        // Global updateQuantity function to match existing inline onclick
+        window.updateQuantity = function(productId, delta) {
+            console.log(`Updating quantity for product ${productId}, delta: ${delta}`);
     
-        document.getElementById('cart-subtotal').textContent = `${data.subtotal.toFixed(2)}₹`;
-        document.getElementById('cart-tax').textContent = `${data.tax.toFixed(2)}₹`;
-        document.getElementById('cart-total').textContent = `${data.total.toFixed(2)}₹`;
-    }
+            const qtyInput = document.getElementById(`qty-${productId}`);
+            const minusBtn = document.querySelector(`.minus[onclick="updateQuantity('${productId}', -1)"]`);
+            const plusBtn = document.querySelector(`.plus[onclick="updateQuantity('${productId}', 1)"]`);
     
-
-function updateQuantity(productId, delta) {
-    const qtyInput = document.getElementById(`qty-${productId}`);
-    const currentQty = parseInt(qtyInput.value);
-    const newQty = currentQty + delta;
-    const maxStock = parseInt(qtyInput.getAttribute('max'));
+            if (!qtyInput) {
+                console.error(`Quantity input for product ${productId} not found`);
+                return;
+            }
     
-    if (newQty < 1 || newQty > Math.min(maxStock, 5)) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Invalid Quantity',
-            text: `Quantity must be between 1 and ${Math.min(maxStock, 5)}`,
-            timer: 2000,
-            showConfirmButton: false
-        });
-        return;
-    }
+            const currentQty = parseInt(qtyInput.value);
+            const newQty = currentQty + delta;
+            const maxStock = parseInt(qtyInput.getAttribute('max') || '5');
     
-    fetch("{% url 'update_cart_item' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-        },
-        body: JSON.stringify({
-            'productId': productId,
-            'quantity': newQty
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.error,
-                timer: 2000,
-                showConfirmButton: false
+            // Validate quantity
+            if (newQty < 1 || newQty > Math.min(maxStock, 5)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Quantity',
+                    text: `Quantity must be between 1 and ${Math.min(maxStock, 5)}`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+    
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+            fetch("{% url 'update_cart_item' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    'productId': productId,
+                    'quantity': newQty
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Server Response:", data);
+    
+                if (data.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    // Update quantity input
+                    qtyInput.value = newQty;
+    
+                    // Update product subtotal
+                    const subtotalEl = document.getElementById(`subtotal-${productId}`);
+                    if (subtotalEl) {
+                        subtotalEl.textContent = `₹${data.subtotal.toFixed(2)}`;
+                    }
+    
+                    // Update cart summary
+                    if (data.cart_summary) {
+                        document.querySelector("#cart-subtotal").textContent = `₹${data.cart_summary.subtotal.toFixed(2)}`;
+                        document.querySelector("#cart-tax").textContent = `₹${data.cart_summary.tax.toFixed(2)}`;
+                        document.querySelector("#cart-total").textContent = `₹${data.cart_summary.total.toFixed(2)}`;
+                    }
+    
+                    // Update button states
+                    if (minusBtn) {
+                        minusBtn.disabled = newQty <= 1;
+                    }
+                    if (plusBtn) {
+                        plusBtn.disabled = newQty >= Math.min(maxStock, 5);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Fetch Error:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while updating the cart. Please try again.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             });
-        } else {
-            qtyInput.value = newQty;
-            document.getElementById(`subtotal-${productId}`).textContent = `${data.subtotal.toFixed(2)}₹`;
-            updateCartSummary(data.cart_summary);
-            
-            // Update button states
-            const row = qtyInput.closest('tr');
-            const minusBtn = row.querySelector('.minus');
-            const plusBtn = row.querySelector('.plus');
-            
-            minusBtn.disabled = newQty <= 1;
-            plusBtn.disabled = newQty >= Math.min(maxStock, 5);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred. Please try again.',
-            timer: 2000,
-            showConfirmButton: false
-        });
+        };
     });
-}
-
+    
 function deleteFromCart(productId) {
     Swal.fire({
         title: 'Remove Item?',
@@ -229,29 +268,39 @@ function deleteFromCart(productId) {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                }
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({})
             })
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.error,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                } else {
+                if (data.success) {
+                    // Remove the row from the DOM
                     const row = document.querySelector(`tr[data-product-id="${productId}"]`);
                     if (row) {
                         row.remove();
-                        updateCartSummary(data);
-                        
-                        // Check if cart is empty after deletion
-                        const remainingItems = document.querySelectorAll('tr[data-product-id]');
-                        if (remainingItems.length === 0) {
-                            location.reload(); // Reload to show empty cart message
+                    }
+                    
+                    // Update cart totals
+                    document.querySelector("#cart-subtotal").textContent = `₹${data.cart_summary.subtotal.toFixed(2)}`;
+                    document.querySelector("#cart-tax").textContent = `₹${data.cart_summary.tax.toFixed(2)}`;
+                    document.querySelector("#cart-total").textContent = `₹${data.cart_summary.total.toFixed(2)}`;
+                    
+                    // Check if the cart is empty based on the count from the server
+                    if (data.cart_summary.item_count === 0) {
+                        // Get the container that holds the cart table
+                        const cartSection = document.querySelector('.cart-section');
+                        if (cartSection) {
+                            cartSection.innerHTML = `
+                                <div class="text-center py-5">
+                                    <h3 class="mb-4">SORRY, Your cart is empty!</h3>
+                                    <p class="mb-4">You have no items in your cart.</p>
+                                    <div class="d-flex justify-content-center gap-3">
+                                        <a href="/" class="btn btn-secondary">GO Back</a>
+                                        <a href="/products" class="btn btn-primary">Continue Shopping</a>
+                                    </div>
+                                </div>
+                            `;
                         }
                     }
                     
@@ -262,6 +311,14 @@ function deleteFromCart(productId) {
                         timer: 2000,
                         showConfirmButton: false
                     });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.error || 'Something went wrong!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
                 }
             })
             .catch(error => {
@@ -269,7 +326,7 @@ function deleteFromCart(productId) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'An error occurred. Please try again.',
+                    text: 'An error occurred while removing the item. Please try again.',
                     timer: 2000,
                     showConfirmButton: false
                 });
@@ -277,5 +334,10 @@ function deleteFromCart(productId) {
         }
     });
 }
+
 </script>
+
+
+
+
 {% endblock %}

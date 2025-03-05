@@ -42,8 +42,8 @@
                     <div class="collection-hero">
                         <div class="collection-hero__image"></div>
                         <div class="collection-hero__title-wrapper container">
-                            <h1 class="collection-hero__title">My Account</h1>
-                            <div class="breadcrumbs text-uppercase mt-1 mt-lg-2"><a href="index.html" title="Back to the home page">Home</a><span>|</span><span class="fw-bold">My Account</span></div>
+                            <h1 class="collection-hero__title"> my account</h1>
+                            <div class="breadcrumbs text-uppercase mt-1 mt-lg-2"><a href="{% url 'user_home' %}" title="Back to the home page">Home</a><span>|</span><span class="fw-bold">Wallet</span></div>
                         </div>
                     </div>
                 </div>
@@ -87,8 +87,8 @@
                                 <ul class="nav flex-column bg-light h-100 dashboard-list" role="tablist">
                                     <!-- <li><a class="nav-link "  href="{% url 'profile_dashboard">Dashboard</a></li> -->
                                     <!-- <li><a class="nav-link "  href="{% url 'order' user.id ">Orders</a></li> -->
-                                    <li><a class="nav-link"  href="{% url 'wallet_view' %}  ">Wallet</a></li>                            
-                                    <li><a class="nav-link active"  href="{% url 'view_address'%}">Addresses</a></li>
+                                    <li><a class="nav-link active"  href="{% url 'wallet_view' %}  ">Wallet</a></li>                            
+                                    <li><a class="nav-link "  href="{% url 'view_address'%}">Addresses</a></li>
                                     <li><a class="nav-link "  href="{% url 'user_account'%} ">Account details</a></li>
                                     <li><a class="nav-link"  href="{% url 'change_password'%} ">Change Password</a></li>
                                     <li><a class="nav-link" href="{% url 'user_logout' %}">logout</a></li>

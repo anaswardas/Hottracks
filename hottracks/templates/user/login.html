@@ -1,0 +1,18 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}Google Sign In - Hot Tracks{% endblock %}
+
+{% block content %}
+<div class="container d-flex flex-column align-items-center justify-content-center" style="height: 80vh;">
+    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%; text-align: center;">
+        <h2 class="mb-3">Sign In Via Google</h2>
+        <p class="text-muted">You are about to sign in using a third-party account from Google.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100">
+                <i class="fab fa-google"></i> Continue with Google
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

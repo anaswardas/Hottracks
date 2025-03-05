@@ -18,59 +18,57 @@ from payment.models import Coupon
 
 
 
-
 @login_required(login_url="user_login")
 def add_to_cart(request, product_id):
     if request.method == "POST":
         try:
-            
             body = json.loads(request.body)
             quantity = int(body.get('quantity', 1))  
-            
-          
+
+            # Ensure quantity is greater than 0
             if quantity <= 0:
                 return JsonResponse({'error': 'Quantity must be greater than 0'}, status=400)
-            
-            
+
+            product = get_object_or_404(Product, id=product_id)
+
+            # Check if the product is out of stock
+            if product.stock_count <= 0:
+                return JsonResponse({'error': 'This product is out of stock'}, status=400)
+
             cart, _ = Cart.objects.get_or_create(
                 user=request.user,
                 is_active=True
             )
-            
-            
-            product = get_object_or_404(Product, id=product_id)
-            
+
             with transaction.atomic():
-               
                 cart_item, created = CartItem.objects.get_or_create(
                     cart=cart,
                     product=product,
                     defaults={'quantity': 0}  
                 )
-                
-               
+
                 new_quantity = cart_item.quantity + quantity
-                
-               
-                if new_quantity > 5:
-                    return JsonResponse({
-                        'error': 'Maximum 5 items allowed per product'
-                    }, status=400)
-                
+
+                # Check if adding exceeds stock count
                 if new_quantity > product.stock_count:
                     return JsonResponse({
                         'error': f'Only {product.stock_count} items available in stock'
                     }, status=400)
-                
-               
+
+                # Check if quantity exceeds the maximum allowed per product
+                if new_quantity > 5:
+                    return JsonResponse({
+                        'error': 'Maximum 5 items allowed per product'
+                    }, status=400)
+
                 cart_item.quantity = new_quantity
                 cart_item.save()
-                
-               
+
+                # Update cart totals
                 cart_subtotal = cart.subtotal()
                 cart_tax = cart.calculate_tax()
                 cart_total = cart_subtotal + cart_tax
-                
+
                 return JsonResponse({
                     'success': True,
                     'message': 'Product added to cart',
@@ -92,8 +90,7 @@ def add_to_cart(request, product_id):
 
 
 
-from decimal import Decimal
-
+@login_required(login_url="user_login")
 def user_cart(request):
     try:
         cart = Cart.objects.get(user=request.user, is_active=True)
@@ -152,97 +149,96 @@ def update_cart_item(request):
         data = json.loads(request.body)
         product_id = data.get('productId')
         new_quantity = int(data.get('quantity', 1))
-        
+
         if new_quantity <= 0:
             return JsonResponse({'error': 'Quantity must be greater than 0'}, status=400)
             
         cart = get_object_or_404(Cart, user=request.user, is_active=True)
         product = get_object_or_404(Product, id=product_id)
-        
+
         if new_quantity > min(product.stock_count, 5):
             return JsonResponse({
                 'error': f'Only {min(product.stock_count, 5)} items allowed'
             }, status=400)
-            
+
         with transaction.atomic():
-            cart_item, _ = CartItem.objects.get_or_create(
+            cart_item, created = CartItem.objects.get_or_create(
                 cart=cart,
                 product=product,
                 defaults={'quantity': new_quantity}
             )
-            
-            if not _:  
+
+            if not created:
                 cart_item.quantity = new_quantity
                 cart_item.save()
-                
-            original_price = product.price
-            discount_amount = (product.discount_percentage / 100) * original_price if product.is_offer_applied else 0
-            discounted_price = original_price - discount_amount
 
-            subtotal = discounted_price * cart_item.quantity
-            cart_subtotal = sum(
-                (item.product.price - ((item.product.discount_percentage / 100) * item.product.price) if item.product.is_offer_applied else item.product.price) * item.quantity
-                for item in cart.items.all()
-            )
-            
-            cart_discount = sum(
-                ((item.product.discount_percentage / 100) * item.product.price * item.quantity) if item.product.is_offer_applied else 0
-                for item in cart.items.all()
-            )
+        # Ensure we calculate the correct values
+        cart_subtotal = sum(
+            (item.product.price - ((item.product.discount_percentage / 100) * item.product.price) if item.product.is_offer_applied else item.product.price) * item.quantity
+            for item in cart.items.all()
+        )
+        cart_discount = sum(
+            ((item.product.discount_percentage / 100) * item.product.price * item.quantity) if item.product.is_offer_applied else 0
+            for item in cart.items.all()
+        )
+        cart_tax = cart.calculate_tax()
+        cart_total = cart_subtotal + cart_tax
 
-            cart_tax = cart.calculate_tax()
-            cart_total = cart_subtotal + cart_tax
+        response_data = {
+            'success': True,
+            'new_quantity': cart_item.quantity,
+            'subtotal': float(cart_item.quantity * (product.price - ((product.discount_percentage / 100) * product.price) if product.is_offer_applied else product.price)),
+            'cart_summary': {
+                'subtotal': float(cart_subtotal),
+                'discount': float(cart_discount),
+                'tax': float(cart_tax),
+                'total': float(cart_total)
+            }
+        }
 
-            return JsonResponse({
-                'success': True,
-                'new_quantity': cart_item.quantity,
-                'subtotal': float(subtotal),
-                'cart_summary': {
-                    'subtotal': float(cart_subtotal),
-                    'discount': float(cart_discount),  
-                    'tax': float(cart_tax),
-                    'total': float(cart_total)
-                }
-            })
+        print("Response Data:", response_data)  # ✅ Debugging
+        return JsonResponse(response_data)
             
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid request format'}, status=400)
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
-
-
-
-
-
-
-@login_required(login_url="login")
-def delete_from_cart(request, product_id):
-    user = request.user
-
-    try:
-        with transaction.atomic():
-            user_cart = get_object_or_404(Cart, user=user, is_active=True)
-            cart_item = get_object_or_404(CartItem, cart=user_cart, product_id=product_id)
-
-            cart_item.delete()
-            product = get_object_or_404(Product, id=product_id)
-            product.stock_count += cart_item.quantity
-            product.save()
-
-            new_subtotal = user_cart.subtotal()  
-            
-           
-            return JsonResponse({
-                'success': True,
-                'message': 'Product removed from cart',
-                'new_subtotal': new_subtotal
-            })
-
-    except (CartItem.DoesNotExist, Product.DoesNotExist):
-        return JsonResponse({'error': 'Item or product not found'}, status=400)
     except Exception as e:
-        return JsonResponse({'error': f'Error: {str(e)}'}, status=500)
+        return JsonResponse({'error': str(e)}, status=500)
 
+
+
+
+
+def delete_from_cart(request, product_id):
+    if request.method == "POST":
+        try:
+            cart = Cart.objects.get(user=request.user)
+            item = get_object_or_404(CartItem, cart=cart, product_id=product_id)
+            item.delete()
+
+            # Calculate updated totals
+            cart_items = CartItem.objects.filter(cart=cart)
+            
+            # Convert Decimal to float or float to Decimal to avoid type mismatch
+            subtotal = sum(float(item.product.price) * item.quantity for item in cart_items)
+            tax = subtotal * 0.001  # Adjust tax calculation if needed
+            total = subtotal + tax
+
+            return JsonResponse({
+                "success": True,
+                "message": "Item removed successfully.",
+                "cart_summary": {
+                    "subtotal": subtotal,
+                    "tax": tax,
+                    "total": total,
+                    "item_count": cart_items.count()  # Added to check if cart is empty
+                }
+            })
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"})
 
 
 
@@ -283,6 +279,8 @@ def wishlist_view(request, product_id):
         'error': 'Invalid request method'
     }, status=405)
 
+
+
 @login_required(login_url="user_login")
 def wishlist(request):
     wishlist_products = Wishlist.objects.filter(user=request.user).select_related('product')
@@ -293,21 +291,29 @@ def wishlist(request):
 from django.http import JsonResponse
 
 
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
+from .models import Product, Wishlist
 
 @login_required(login_url="user_login")
 def add_to_wishlist(request, product_id):
-    try:
-        product = get_object_or_404(Product, id=product_id)
-        wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+    if request.method == "POST":
+        try:
+            product = get_object_or_404(Product, id=product_id)
+            wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
 
-        if not created:
-            wishlist_item.delete()
-            return JsonResponse({"success": True, "message": "Product removed from wishlist"})
+            if not created:
+                wishlist_item.delete()
+                return JsonResponse({"success": True, "message": "Product removed from wishlist"})
 
-        return JsonResponse({"success": True, "message": "Product added to wishlist"})
+            return JsonResponse({"success": True, "message": "Product added to wishlist"})
 
-    except Exception as e:
-        return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
+        except Exception as e:
+            print(f"Error in add_to_wishlist: {e}")  # ✅ Debugging
+            return JsonResponse({"success": False, "message": f"Error: {str(e)}"})
+    
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=400)
 
 
 
@@ -380,7 +386,7 @@ def get_wishlist_count(request):
 
 
 
-@login_required
+@login_required(login_url="user_login")
 def user_account(request):
     user = request.user
 
@@ -633,7 +639,7 @@ def update_order_status(request, order_id):
 
 
 
-
+@login_required(login_url="user_login")
 def wallet_view(request):
     if not request.user.is_authenticated:
         return redirect('login')  

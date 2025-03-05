@@ -99,17 +99,12 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-filter me-2"></i>Apply Filter
                     </button>
-                    <!-- <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown">
-                            <i class="fas fa-download me-2"></i>Export
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'export_sales_report' 'xlsx' %?{{ request.GET.urlencode }}">Excel</a></li>
-                            <li><a class="dropdown-item" href="{% url 'export_sales_report' 'pdf' %?{{ request.GET.urlencode }}">PDF</a></li>
-                        </ul>
-                    </div> -->
+                    <a href="?{{ request.GET.urlencode }}&download=pdf" class="btn btn-danger">
+                        <i class="fas fa-file-pdf me-2"></i>Download PDF
+                    </a>
                 </div>
             </div>
+            
         </form>
     </div>
 </div>

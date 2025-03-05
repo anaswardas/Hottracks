@@ -30,6 +30,11 @@ import json
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import tempfile
+from django.http import HttpResponse
+
 
 
 
@@ -474,17 +479,20 @@ def checkout_view(request):
     ).exclude(
         end_date__lt=current_time
     )
+    
+    wallet, created = Wallet.objects.get_or_create(user = request.user, defaults={'balance' : Decimal('0.00')})
 
     if request.method == 'POST':
         selected_address_id = request.POST.get('selected_address')
-        payment_method = request.POST.get('payment_method')
+        payment_method = request.POST.get('payment_method','').strip().lower()
         coupon_code = request.POST.get('coupon_code', '').strip()
 
         # Validate address and payment method
         if not selected_address_id:
             messages.error(request, "Please select a delivery address.")
             return redirect('checkout_view')
-        if payment_method not in ['COD', 'Razorpay']:
+        if payment_method not in ['COD', 'Razorpay' , 'wallet']:
+            print(payment_method)
             messages.error(request, "Invalid payment method selected.")
             return redirect('checkout_view')
 
@@ -562,7 +570,32 @@ def checkout_view(request):
                     request.session.pop('coupon_applied_once', None)
                     messages.success(request, "Order placed successfully with Cash on Delivery!")
                     return redirect('checkout_success')
-
+                
+                wallet_used = True
+                wallet_deduction = Decimal('0.00')
+                
+                if payment_method == 'wallet':
+                    if wallet.balance >= total_price:
+                        wallet_deduction = total_price
+                        wallet.balance -= total_price
+                        wallet.save()
+                        
+                        WalletTransaction.objects.create(
+                            wallet = wallet,
+                            amount = -wallet_deduction,
+                            transaction_type = 'CANCELLED ORDER',
+                        )
+                        payment.status = 'Completed'
+                        payment.save()
+                        cart_cleanup(request.user,cart_items,order)
+                        request.session.pop('applied_coupon',None)
+                        request.session.pop('coupon_applied_once',None)
+                        messages.success(request,"Order placed Successfully using wallet")
+                        return redirect('checkout_success')
+                       
+                    else:
+                        messages.error(request,'Insufficient wallet balance.')
+                        return redirect('checkout_view')
                 # Handle Razorpay
                 if payment_method == 'Razorpay':
                     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
@@ -597,6 +630,7 @@ def checkout_view(request):
         'cart_subtotal': subtotal,
         'cart_tax': tax,
         'cart_total': total_price,
+        'wallet_balance' : wallet.balance,
         'coupons': available_coupons if available_coupons.exists() and not applied_coupon else [],
         'applied_coupon': request.session.get('applied_coupon', None),
     }
@@ -720,9 +754,9 @@ def checkout_success(request):
 @admin_required
 def sales_report(request):
     report_type = request.GET.get('report_type', 'day')
-    
     today = timezone.now().date()
     
+    # Determine the date range based on report_type
     if report_type == 'day':
         start_date = today
         end_date = today
@@ -748,6 +782,7 @@ def sales_report(request):
         start_date = today
         end_date = today
 
+    # Fetch orders within the date range
     orders = Order.objects.filter(
         created_at__date__gte=start_date,
         created_at__date__lte=end_date
@@ -786,7 +821,6 @@ def sales_report(request):
         })
 
     total_order_count = orders.count()
-    
     earnings = total_final_total
 
     context = {
@@ -800,6 +834,16 @@ def sales_report(request):
         'end_date': end_date,
         'report_type': report_type
     }
+
+    # **Handle PDF Download**
+    if request.GET.get('download') == 'pdf':
+        html_string = render_to_string('admin_page/sales_pdf.html', context)
+        html = HTML(string=html_string)
+        result = html.write_pdf()
+
+        response = HttpResponse(result, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_{end_date}.pdf"'
+        return response
 
     return render(request, 'admin_page/sales.html', context)
 

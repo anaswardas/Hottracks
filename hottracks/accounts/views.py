@@ -53,7 +53,7 @@ def user_profile(request):
     except SocialAccount.DoesNotExist:
         google_data = None
     
-    return render(request, 'user/profile.html', {'google_data': google_data})
+    return render(request, 'user/login.html', {'google_data': google_data})
 
 
 # User login

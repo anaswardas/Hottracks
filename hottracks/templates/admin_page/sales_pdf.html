@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sales Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            font-size: 14px;
+        }
+        h2, h4 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .summary-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .summary-table th, .summary-table td {
+            border: none;
+            text-align: left;
+            padding: 5px;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Sales Report</h2>
+    <h4>From {{ start_date }} to {{ end_date }}</h4>
+
+    <!-- Summary Section -->
+    <table class="summary-table">
+        <tr>
+            <th>Total Orders:</th>
+            <td>{{ total_order_count }}</td>
+        </tr>
+        <tr>
+            <th>Total Sales:</th>
+            <td>₹{{ total_sales_amount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Total Discounts:</th>
+            <td>₹{{ total_discount_amount|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <th>Net Earnings:</th>
+            <td>₹{{ earnings|floatformat:2 }}</td>
+        </tr>
+    </table>
+
+    <!-- Orders Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Total Amount</th>
+                <th>Discount</th>
+                <th>Final Amount</th>
+                <th>Payment Method</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order_data in orders %}
+                {% for product in order_data.products %}
+                    <tr>
+                        <td>{{ order_data.order.orderid }}</td>
+                        <td>{{ order_data.order.created_at|date:"Y-m-d" }}</td>
+                        <td>{{ order_data.order.user.username }}</td>
+                        <td>{{ product.product.name }}</td>
+                        <td>{{ product.quantity }}</td>
+                        <td>₹{{ product.product_total_amount|floatformat:2 }}</td>
+                        <td>₹{{ product.product_discount_amount|floatformat:2 }}</td>
+                        <td>₹{{ product.product_final_total|floatformat:2 }}</td>
+                        <td>{{ order_data.order.payment.payment_method }}</td>
+                    </tr>
+                {% endfor %}
+            {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No orders found for the selected period</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="5"><strong>Total</strong></td>
+                <td>₹{{ total_sales_amount|floatformat:2 }}</td>
+                <td>₹{{ total_discount_amount|floatformat:2 }}</td>
+                <td>₹{{ total_final_total|floatformat:2 }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+</body>
+</html>

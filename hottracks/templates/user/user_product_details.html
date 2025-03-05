@@ -120,7 +120,7 @@
             <button class="btn btn-primary" onclick="addToCart({{ product.id }})">Add To Cart</button>
         
             <!-- Wishlist Button -->
-            <button class="btn btn-outline-danger" id="wishlist-button" data-product-id="{{ product.id }}">
+            <button class="btn btn-outline-danger wishlist-button" data-product-id="{{ product.id }}">
                 {% if is_in_wishlist %}
                     Remove from Wishlist
                 {% else %}
@@ -138,27 +138,40 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    // ✅ Add to Cart AJAX + SweetAlert
-    function addToCart(productId) {
-        const csrfToken = "{{ csrf_token }}";
+    // ✅ Function to Get CSRF Token from Cookies
+    function getCSRFToken() {
+        let csrfToken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return csrfToken ? csrfToken.split('=')[1] : "{{ csrf_token }}";  // Fallback
+    }
 
+    // ✅ Add to Cart Function with Error Handling
+    function addToCart(productId) {
         fetch(`/cart/add_to_cart/${productId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
+                'X-CSRFToken': getCSRFToken()
             },
             body: JSON.stringify({ quantity: 1 })
         })
         .then(response => response.json())
         .then(data => {
-            Swal.fire({
-                icon: data.success ? 'success' : 'error',
-                title: data.success ? 'Product Added!' : 'Oops...',
-                text: data.message || 'Something went wrong!',
-                timer: 2000,
-                showConfirmButton: false
-            });
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Product Added!',
+                    text: 'This item has been added to your cart.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: data.error || 'Something went wrong!',
+                    showConfirmButton: true
+                });
+            }
         })
         .catch(error => {
             Swal.fire({
@@ -170,49 +183,46 @@
         });
     }
 
-    // ✅ Wishlist Button AJAX + SweetAlert
-    $(document).ready(function() {
-        $("#wishlist-button").click(function() {
-            var button = $(this);
-            var productId = button.data("product-id");
 
-            $.ajax({
-                url: `/cart/wishlist/${productId}/`,
-                type: "POST",
-                data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
-                success: function(response) {
-                    if (response.success) {
-                        let action = response.message.includes("removed") ? "removed from" : "added to";
 
-                        // ✅ Toggle button text
-                        button.text(action === "removed from" ? "Add to Wishlist" : "Remove from Wishlist");
-
-                        // ✅ Show SweetAlert
-                        Swal.fire({
-                            title: "Success!",
-                            text: response.message,
-                            icon: "success",
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                    } else {
-                        Swal.fire({
-                            title: "Error!",
-                            text: response.message,
-                            icon: "error"
-                        });
-                    }
-                },
-                error: function() {
+    $(".wishlist-button").click(function() {
+        let button = $(this);
+        let productId = button.data("product-id");
+    
+        $.ajax({
+            url: `/cart/wishlist/${productId}/`,
+            type: "POST",
+            headers: { "X-CSRFToken": getCSRFToken() },  // ✅ Ensure CSRF is sent in headers
+            success: function(response) {
+                if (response.success) {
+                    button.text(response.message.includes("removed") ? "Add to Wishlist" : "Remove from Wishlist");
+    
                     Swal.fire({
-                        title: "Oops!",
-                        text: "Something went wrong!",
+                        title: "Success!",
+                        text: response.message,
+                        icon: "success",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        title: "Error!",
+                        text: response.message || "Something went wrong!",
                         icon: "error"
                     });
                 }
-            });
+            },
+            error: function(xhr) {
+                console.log("Error:", xhr.responseText);  // ✅ Debugging
+                Swal.fire({
+                    title: "Oops!",
+                    text: "Something went wrong!",
+                    icon: "error"
+                });
+            }
         });
     });
+    
 </script>
 
 

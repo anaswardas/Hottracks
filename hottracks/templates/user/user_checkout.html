@@ -85,31 +85,46 @@
                     </div>
                 </div>
             </div>
-    
-            <!-- Payment Method Section -->
+                
+                    <!-- Payment Method Section -->
             <div class="col-md-6 col-lg-4 mt-2 mt-md-0">
                 <div class="card card--grey mt-2">
                     <div class="card-body">
                         <h2 class="fs-6">PAYMENT METHOD</h2>
                         <div class="row">
                             <div class="col-12">
+                                <!-- Cash on Delivery (COD) -->
                                 <div class="payment-method-card">
                                     <div class="customRadio clearfix">
                                         <input id="formcheckoutRadio4" value="COD" name="payment_method" type="radio" class="radio" checked="checked">
                                         <label for="formcheckoutRadio4">Cash on Delivery (COD)</label>
                                     </div>
                                 </div>
+
+                                <!-- Online Payment (Razorpay) -->
                                 <div class="payment-method-card">
                                     <div class="customRadio clearfix">
                                         <input id="formcheckoutRadio5" value="Razorpay" name="payment_method" type="radio" class="radio">
                                         <label for="formcheckoutRadio5">Online Payment (Razorpay)</label>
                                     </div>
                                 </div>
+
+                                <!-- Wallet Payment -->
+                                <div class="payment-method-card">
+                                    <div class="customRadio clearfix">
+                                        <input id="formcheckoutRadio6" value="Wallet" name="payment_method" type="radio" class="radio">
+                                        <label for="formcheckoutRadio6">
+                                            Pay using Wallet (Balance: ₹{{ wallet_balance }})
+                                        </label>
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
     
             <!-- Order Summary Section -->
             <div class="col-md-12 col-lg-4 mt-2 mt-lg-0">
